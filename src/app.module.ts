@@ -14,6 +14,7 @@ import { OriginMiddleware } from './middlewares/origin.middleware';
 // universal modules
 import { AuthModule } from './modules/auth/auth.module';
 import { AccountManagerModule } from './modules/account-management/accountManagement.module';
+import { DeviceManagerModule } from './modules/device-management/deviceManagement.module';
 import { DatabaseModule } from './processors/database/database.module';
 
 @Module({
@@ -28,6 +29,7 @@ import { DatabaseModule } from './processors/database/database.module';
     DatabaseModule,
     AuthModule,
     AccountManagerModule,
+    DeviceManagerModule,
   ],
   controllers: [AppController],
   providers: [

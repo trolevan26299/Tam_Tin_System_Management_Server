@@ -23,11 +23,6 @@ export class createAccountDTO {
   @IsNotEmpty({ message: 'password is not empty !' })
   @IsDefined()
   password: string;
-
-  @IsString({ message: 'role must be string type' })
-  @IsNotEmpty({ message: 'role is not empty !' })
-  @IsDefined()
-  role: string;
 }
 export class updateAccountDTO {
   password?: string;

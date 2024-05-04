@@ -31,6 +31,6 @@ export const MONGO_DB = {
 export const AUTH = {
   expiresIn:
     argv?.auth_expires_in || Math.floor(Date.now() / 1000) + 3 * 60 * 60, // 3 tiếng đồng hồ expire
-  data: argv?.auth_data || { user: 'root' },
+  data: argv?.auth_data || { username: 'tamtin2024' },
   jwtSecret: argv?.auth_key || '__tam_tin_management',
 };

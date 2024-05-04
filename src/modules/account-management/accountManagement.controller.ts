@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -29,8 +30,14 @@ export class AccountManagerController {
   // API CREATE ACCOUNT
   @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createAccountDto: createAccountDTO): Promise<any> {
-    return this.accountManagementService.createAccount(createAccountDto);
+  create(
+    @Body() createAccountDto: createAccountDTO,
+    @Request() req: any,
+  ): Promise<any> {
+    return this.accountManagementService.createAccount(
+      createAccountDto,
+      req.user_data.data,
+    );
   }
 
   // API GET ALL ACCOUNT

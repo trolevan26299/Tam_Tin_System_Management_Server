@@ -10,12 +10,12 @@ import { decodeMD5 } from '../../transformers/codec.transformer';
 import {
   createAccountDTO,
   filterAccountDto,
-  TokenResult,
   updateAccountDTO,
 } from './dto/accountManagement.dto';
 
 import { Types } from 'mongoose';
 import * as APP_CONFIG from '../../app.config';
+import { USER_TYPE } from '@app/constants/account';
 
 @Injectable()
 export class AccountManagerService {
@@ -27,25 +27,28 @@ export class AccountManagerService {
 
   // VALIDATE AUTH DATA
   public validateAuthData(payload: any): Promise<any> {
+    console.log('payload', payload);
     const isVerified = lodash.isEqual(payload.data, APP_CONFIG.AUTH.data);
     return isVerified ? payload.data : null;
   }
 
-  //CREATE TOKEN
-  public createToken(payload?: any): TokenResult {
-    return {
-      access_token: this.jwtService.sign({ data: payload }),
-      expires_in: APP_CONFIG.AUTH.expiresIn as number,
-    };
-  }
-
   //CREATE ACCOUNT
-  public async createAccount(createAccountDto: createAccountDTO): Promise<any> {
+  public async createAccount(
+    createAccountDto: createAccountDTO,
+    data_request: any,
+  ): Promise<any> {
     try {
+      const role = data_request.role;
       const userName = createAccountDto.username.trim();
       const duplicateUserName = await this.accountManagementModel.findOne({
         username: { $regex: new RegExp(`^${userName}$`, 'i') },
       });
+      if (role === USER_TYPE.ADMIN) {
+        return {
+          status: 400,
+          message: 'Tài khoản không có quyền !',
+        };
+      }
       if (duplicateUserName) {
         return {
           status: 400,

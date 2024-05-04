@@ -10,9 +10,10 @@ import {
 import { TokenResult } from './auth.interface';
 import { AuthService } from './auth.service';
 import { AuthLoginDTO } from './dto/auth.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../../guards/auth.guard';
 import { AccountManagerService } from '../account-management/accountManagement.service';
+
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
@@ -28,8 +29,9 @@ export class AuthController {
   }
 
   // API FOR VERIFICATION USER AND GET INFO CURRENT USER
-  @Get('/me')
+  @ApiBearerAuth()
   @UseGuards(AuthGuard)
+  @Get('/me')
   async checkReturnUserDetail(@Request() req) {
     return await this.accManagementService.getDetailAccount(
       req.user_data.data?.id,
