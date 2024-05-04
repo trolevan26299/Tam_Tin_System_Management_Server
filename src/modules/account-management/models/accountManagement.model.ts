@@ -24,5 +24,5 @@ export class AccountManagementModel {
 
 export const AccountManagementProvider = getProviderByTypegooseClass(
   AccountManagementModel,
-  'account_management',
+  'account',
 );

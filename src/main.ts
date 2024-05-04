@@ -43,7 +43,7 @@ async function bootstrap() {
 
   // swagger
   const config = new DocumentBuilder()
-    .setTitle('SP247 APIs')
+    .setTitle('Tâm Tín Management APIs')
     .setDescription('List APIs for Tâm Tín Management System')
     .setVersion('1.0')
     .addTag('Auth')
