@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import * as APP_CONFIG from '../../app.config';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';

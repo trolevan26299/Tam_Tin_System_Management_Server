@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import {

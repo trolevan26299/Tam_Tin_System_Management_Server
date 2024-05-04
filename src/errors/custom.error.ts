@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ExceptionInfo } from '@app/interfaces/response.interface';
 

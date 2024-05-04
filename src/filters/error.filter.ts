@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import lodash from 'lodash';
 import {
   ExceptionFilter,
