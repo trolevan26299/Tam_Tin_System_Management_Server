@@ -16,6 +16,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AccountManagerModule } from './modules/account-management/accountManagement.module';
 import { DeviceManagerModule } from './modules/device-management/deviceManagement.module';
 import { DatabaseModule } from './processors/database/database.module';
+import { CategoryManagerModule } from './modules/category-management/categoryManagement.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DatabaseModule } from './processors/database/database.module';
     DatabaseModule,
     AuthModule,
     AccountManagerModule,
+    CategoryManagerModule,
     DeviceManagerModule,
   ],
   controllers: [AppController],
