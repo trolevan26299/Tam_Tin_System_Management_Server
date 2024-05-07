@@ -17,6 +17,7 @@ import { AccountManagerModule } from './modules/account-management/accountManage
 import { DeviceManagerModule } from './modules/device-management/deviceManagement.module';
 import { DatabaseModule } from './processors/database/database.module';
 import { CategoryManagerModule } from './modules/category-management/categoryManagement.module';
+import { StaffManagerModule } from './modules/staff-management/staffManagement.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CategoryManagerModule } from './modules/category-management/categoryMan
     AccountManagerModule,
     CategoryManagerModule,
     DeviceManagerModule,
+    StaffManagerModule,
   ],
   controllers: [AppController],
   providers: [
