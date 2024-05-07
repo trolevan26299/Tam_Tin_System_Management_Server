@@ -34,15 +34,7 @@ export class StaffManagerService {
     body: StaffMngDto,
   ): Promise<StaffManagementModel> {
     try {
-      const staffUpdate: any = { ...body };
-
-      if (!staffUpdate.hasOwnProperty('time_keeping_id')) {
-        staffUpdate.$unset = { ...staffUpdate.$unset, time_keeping_id: 1 };
-      }
-
-      if (!staffUpdate.hasOwnProperty('employee_turnover_id')) {
-        staffUpdate.$unset = { ...staffUpdate.$unset, employee_turnover_id: 1 };
-      }
+      const staffUpdate = { ...body };
 
       const objectId = new Types.ObjectId(id);
       const updatedStaff = await this.staffManagementModel.findOneAndUpdate(
