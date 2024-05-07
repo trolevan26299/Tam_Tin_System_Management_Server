@@ -77,7 +77,6 @@ export class AccountManagerService {
       const { data } = BodyGetAllAccountData;
       const items_per_page = Number(data?.items_per_page) || 10;
       const page = Number(data?.page) + 1 || 1;
-      const skip = (page - 1) * items_per_page;
       const keyword = data?.keyword || '';
       const status = data?.status || 'all';
       const filter: any = {};
@@ -91,8 +90,9 @@ export class AccountManagerService {
       }
       const dataRes = await this.accountManagementModel
         .find(filter)
+        .select(['-password', '-role'])
         .limit(items_per_page)
-        .skip(skip)
+        .skip(1)
         .exec();
 
       const totalCount =

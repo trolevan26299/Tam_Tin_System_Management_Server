@@ -30,10 +30,16 @@ export class AuthService {
       })
       .lean();
     if (!user) {
-      throw new HttpException('Account is not exist', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        'Tài khoản không tồn tại !',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
     if (user.status === USER_STATUS.INACTIVE) {
-      throw new HttpException('Account is suspended', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        'Tài khoản đã bị khóa !',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const loginPassword = decodeMD5(loginDto.password);
@@ -50,10 +56,7 @@ export class AuthService {
         username: user.username,
       });
     } else {
-      throw new HttpException(
-        'Password is not correct !',
-        HttpStatus.UNAUTHORIZED,
-      );
+      throw new HttpException('Mật khẩu sai !', HttpStatus.UNAUTHORIZED);
     }
   }
 }
