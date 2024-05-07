@@ -1,3 +1,4 @@
+import { AuthGuard } from '@app/guards/auth.guard';
 import {
   Body,
   Controller,
@@ -7,8 +8,9 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   DetailStaffDto,
   ListStaffDto,
@@ -18,7 +20,9 @@ import {
 import { StaffManagementModel } from './models/staffManagement.model';
 import { StaffManagerService } from './staffManagement.service';
 
+@ApiBearerAuth()
 @ApiTags('StaffManagement')
+@UseGuards(AuthGuard)
 @Controller('staff')
 export class StaffManagerController {
   constructor(private readonly staffManagementService: StaffManagerService) {}

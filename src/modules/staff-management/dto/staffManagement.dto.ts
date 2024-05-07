@@ -18,7 +18,6 @@ export class StaffMngDto {
   @IsNotEmpty({ message: 'address is not empty !' })
   @IsDefined()
   @IsString({ message: 'address must be string type' })
-  @MaxLength(255)
   address: string;
 
   @IsNotEmpty({ message: 'age is not empty !' })
