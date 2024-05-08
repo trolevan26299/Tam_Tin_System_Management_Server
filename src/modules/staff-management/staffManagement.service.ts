@@ -56,7 +56,6 @@ export class StaffManagerService {
   public async getStaffById(id: string): Promise<DetailStaffDto> {
     try {
       const staff = await this.staffManagementModel.findById(id).exec();
-      console.log('🚀 ~ StaffManagerService ~ getStaffById ~ staff:', staff);
       if (!staff) {
         throw new HttpException('Staff is not exists !', HttpStatus.NOT_FOUND);
       }
