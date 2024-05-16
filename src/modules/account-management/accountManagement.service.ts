@@ -143,9 +143,9 @@ export class AccountManagerService {
   public async updateAccount(
     id: string,
     updateAccountDto: updateAccountDTO,
-  ): Promise<any> {
+  ): Promise<AccountManagementModel> {
     try {
-      const { oldPassword, password } = updateAccountDto;
+      const { oldPassword, password, status } = updateAccountDto;
       const account = await this.accountManagementModel.findById(id).exec();
 
       if (!account) {
@@ -166,19 +166,19 @@ export class AccountManagerService {
 
       const newPwd = decodeMD5(String(password));
 
-      // if (updateAccountDto.password === '') {
-      //   delete updateAccountDto.password;
-      // } else if (updateAccountDto.password) {
-      //   const passwordHash = decodeMD5(updateAccountDto.password);
-      //   updateAccountDto.password = passwordHash;
-      // }
-      // const accountUpdate = { ...updateAccountDto };
-      // const objectId = new Types.ObjectId(id);
-      // await this.accountManagementModel.findOneAndUpdate(
-      //   { _id: objectId },
-      //   accountUpdate,
-      //   { new: true },
-      // );
+      const objectId = new Types.ObjectId(id);
+      const accountUpdate = {
+        password: newPwd,
+        status: status || account?.status,
+      };
+
+      const updateAccount = await this.accountManagementModel.findOneAndUpdate(
+        { _id: objectId },
+        accountUpdate,
+        { new: true },
+      );
+
+      return updateAccount as AccountManagementModel;
     } catch (error) {
       console.error('Error updating account:', error);
       throw new HttpException(
