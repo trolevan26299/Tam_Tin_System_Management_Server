@@ -15,7 +15,7 @@ import { AccountManagementProvider } from './models/accountManagement.model';
     JwtModule.register({
       privateKey: APP_CONFIG.AUTH.jwtSecret as jwt.Secret,
       signOptions: {
-        expiresIn: APP_CONFIG.AUTH.expiresIn as number,
+        expiresIn: APP_CONFIG.AUTH.expiresIn,
       },
     }),
   ],

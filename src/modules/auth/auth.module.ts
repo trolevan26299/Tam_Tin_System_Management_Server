@@ -15,7 +15,7 @@ import { AccountManagerService } from '../account-management/accountManagement.s
       global: true,
       secret: APP_CONFIG.AUTH.jwtSecret,
       signOptions: {
-        expiresIn: APP_CONFIG.AUTH.expiresIn as number,
+        expiresIn: APP_CONFIG.AUTH.expiresIn,
       },
     }),
   ],
