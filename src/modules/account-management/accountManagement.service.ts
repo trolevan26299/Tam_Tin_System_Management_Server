@@ -25,6 +25,11 @@ export class AccountManagerService {
     private readonly accountManagementModel: MongooseModel<AccountManagementModel>,
   ) {}
 
+  private comparePasswords(oldPwd: string, originPwd: string): boolean {
+    const hashedInputPassword = decodeMD5(oldPwd);
+    return originPwd === hashedInputPassword;
+  }
+
   // VALIDATE AUTH DATA
   public validateAuthData(payload: any): Promise<any> {
     console.log('payload', payload);
@@ -138,21 +143,42 @@ export class AccountManagerService {
   public async updateAccount(
     id: string,
     updateAccountDto: updateAccountDTO,
-  ): Promise<any> {
+  ): Promise<AccountManagementModel> {
     try {
-      if (updateAccountDto.password === '') {
-        delete updateAccountDto.password;
-      } else if (updateAccountDto.password) {
-        const passwordHash = decodeMD5(updateAccountDto.password);
-        updateAccountDto.password = passwordHash;
+      const { oldPassword, password, status } = updateAccountDto;
+      const account = await this.accountManagementModel.findById(id).exec();
+
+      if (!account) {
+        throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
       }
-      const accountUpdate = { ...updateAccountDto };
+
+      const isMatch = this.comparePasswords(
+        String(oldPassword),
+        String(account?.password),
+      );
+
+      if (!isMatch) {
+        throw new HttpException(
+          'Old password is incorrect',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      const newPwd = decodeMD5(String(password));
+
       const objectId = new Types.ObjectId(id);
-      await this.accountManagementModel.findOneAndUpdate(
+      const accountUpdate = {
+        password: newPwd,
+        status: status || account?.status,
+      };
+
+      const updateAccount = await this.accountManagementModel.findOneAndUpdate(
         { _id: objectId },
         accountUpdate,
         { new: true },
       );
+
+      return updateAccount as AccountManagementModel;
     } catch (error) {
       console.error('Error updating account:', error);
       throw new HttpException(

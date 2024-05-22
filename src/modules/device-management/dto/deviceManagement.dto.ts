@@ -15,27 +15,27 @@ export class CreateUpdateDeviceDTO {
   @IsString({ message: 'id_device must be string type' })
   @IsNotEmpty({ message: 'id_device is not empty !' })
   @IsDefined()
-  category_name: string;
+  category_id: string;
 
   @IsNumber()
   @IsDefined()
-  warranty: number;
+  warranty?: number;
 
   @IsString({ message: 'status must be string type' })
   @IsDefined()
-  status: string;
+  status?: string;
 
   @IsString({ message: 'belong_to must be string type' })
   @IsDefined()
-  belong_to: string;
+  belong_to?: string;
 
-  @IsNumber()
+  @IsString()
   @IsDefined()
-  delivery_date: number;
+  delivery_date?: string;
 
   @IsString({ message: 'note must be string type' })
   @IsDefined()
-  note: string;
+  note?: string;
 }
 
 export class filterDeviceDto {

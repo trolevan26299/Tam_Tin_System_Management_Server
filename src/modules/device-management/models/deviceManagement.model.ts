@@ -1,5 +1,6 @@
 /* eslint-disable prettier/prettier */
-import { prop } from '@typegoose/typegoose';
+import { CategoryManagementModel } from '@app/modules/category-management/models/categoryManagement.model';
+import { Ref, prop } from '@typegoose/typegoose';
 import { IsDefined, IsNumber, IsString } from 'class-validator';
 import { getProviderByTypegooseClass } from '../../../transformers/model.transformer';
 
@@ -14,9 +15,8 @@ export class DeviceManagementModel {
   @prop({ required: true })
   id_device: string;
 
-  @IsString()
-  @prop()
-  category_name: string;
+  @prop({ ref: () => CategoryManagementModel, required: true })
+  category_id: Ref<CategoryManagementModel>;
 
   @IsNumber()
   @prop()
@@ -30,9 +30,9 @@ export class DeviceManagementModel {
   @prop({ default: '' })
   belong_to?: string;
 
-  @IsNumber()
+  @IsString()
   @prop()
-  delivery_date?: number;
+  delivery_date?: string;
 
   @IsString()
   @prop()

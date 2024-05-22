@@ -27,6 +27,7 @@ export class createAccountDTO {
 export class updateAccountDTO {
   password?: string;
   status?: string;
+  oldPassword?: string;
 }
 
 export class filterAccountDto {

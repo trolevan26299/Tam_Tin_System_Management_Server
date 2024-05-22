@@ -125,11 +125,12 @@ export class DeviceManagerService {
     try {
       const accountUpdate = { ...updateDeviceDto };
       const objectId = new Types.ObjectId(id);
-      await this.deviceManagementModel.findOneAndUpdate(
+      const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
         { _id: objectId },
         accountUpdate,
         { new: true },
       );
+      return updateDevice;
     } catch (error) {
       console.error('Error updating device:', error);
       throw new HttpException(
