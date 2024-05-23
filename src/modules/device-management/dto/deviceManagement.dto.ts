@@ -12,10 +12,10 @@ export class CreateUpdateDeviceDTO {
   @IsDefined()
   id_device: string;
 
-  @IsString({ message: 'id_device must be string type' })
-  @IsNotEmpty({ message: 'id_device is not empty !' })
+  @IsString({ message: 'sub_category_id must be string type' })
+  @IsNotEmpty({ message: 'sub_category_id is not empty !' })
   @IsDefined()
-  category_id: string;
+  sub_category_id: string;
 
   @IsNumber()
   @IsDefined()
