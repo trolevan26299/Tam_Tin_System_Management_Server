@@ -19,6 +19,7 @@ import { DatabaseModule } from './processors/database/database.module';
 import { CategoryManagerModule } from './modules/category-management/categoryManagement.module';
 import { StaffManagerModule } from './modules/staff-management/staffManagement.module';
 import { SubCategoryManagerModule } from './modules/sub-category-management/subCategoryManagement.module';
+import { CustomerManagerModule } from './modules/customer-management/customerManagement.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { SubCategoryManagerModule } from './modules/sub-category-management/subC
     DeviceManagerModule,
     StaffManagerModule,
     SubCategoryManagerModule,
+    CustomerManagerModule,
   ],
   controllers: [AppController],
   providers: [
