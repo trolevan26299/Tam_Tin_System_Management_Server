@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import { CategoryManagementModel } from '@app/modules/category-management/models/categoryManagement.model';
+import { SubCategoryManagerModule } from '@app/modules/sub-category-management/subCategoryManagement.module';
 import { Ref, prop } from '@typegoose/typegoose';
 import { IsDefined, IsNumber, IsString } from 'class-validator';
 import { getProviderByTypegooseClass } from '../../../transformers/model.transformer';
@@ -15,8 +15,8 @@ export class DeviceManagementModel {
   @prop({ required: true })
   id_device: string;
 
-  @prop({ ref: () => CategoryManagementModel, required: true })
-  category_id: Ref<CategoryManagementModel>;
+  @prop({ ref: () => SubCategoryManagerModule, required: true })
+  sub_category_id: Ref<SubCategoryManagerModule>;
 
   @IsNumber()
   @prop()
