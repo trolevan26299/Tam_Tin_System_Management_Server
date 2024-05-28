@@ -28,7 +28,10 @@ export class CustomerManagerService {
       const filter: any = {};
 
       if (keyword) {
-        filter.$or = [{ name: { $regex: keyword, $options: 'i' } }];
+        filter.$or = [
+          { name: { $regex: keyword, $options: 'i' } },
+          { phone: { $regex: keyword, $options: 'i' } },
+        ];
       }
 
       const dataRes = await this.customerManagementModel
