@@ -1,3 +1,4 @@
+import { AuthGuard } from '@app/guards/auth.guard';
 import {
   Body,
   Controller,
@@ -7,8 +8,9 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CustomerManagerService } from './customerManagement.service';
 import {
   CustomerMngDTO,
@@ -17,7 +19,9 @@ import {
 } from './dto/customerManagement.dto';
 import { CustomerManagementModel } from './models/customerManagement.model';
 
+@ApiBearerAuth()
 @ApiTags('CustomerManagement')
+@UseGuards(AuthGuard)
 @Controller('customer')
 export class CustomerManagementController {
   constructor(
