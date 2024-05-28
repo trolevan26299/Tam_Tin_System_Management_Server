@@ -20,7 +20,7 @@ export class CustomerManagerService {
     query: QueryCustomerDto,
   ): Promise<ListCustomerDto> {
     try {
-      const page = Number(query.page);
+      const page = Number(query.page) + 1 || 1;
       const items_per_page = Number(query.items_per_page) || 10;
       const keyword = query.keyword || '';
 
