@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { prop } from '@typegoose/typegoose';
-import { IsDefined, IsNumber, IsString } from 'class-validator';
+import { IsDefined, IsString } from 'class-validator';
 import { getProviderByTypegooseClass } from '../../../transformers/model.transformer';
 
 export class CustomerManagementModel {
@@ -14,15 +14,20 @@ export class CustomerManagementModel {
   @prop({ required: true })
   address: string;
 
-  @IsNumber()
+  @IsString()
   @IsDefined()
   @prop({ required: true })
-  phone: number;
+  phone: string;
 
   @IsString()
   @IsDefined()
   @prop({ required: true })
   type: string;
+
+  @IsString()
+  @IsDefined()
+  @prop({ required: true })
+  email: string;
 
   @IsString()
   @prop()

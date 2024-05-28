@@ -1,14 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsDefined, IsNotEmpty, IsString, MaxLength } from 'class-validator';
 import { CustomerManagementModel } from '../models/customerManagement.model';
-import {
-  IsDefined,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  MaxLength,
-} from 'class-validator';
 
-export class CategoryMngDTO {
+export class CustomerMngDTO {
   @IsString({ message: 'name must be string type' })
   @IsNotEmpty({ message: 'name is not empty !' })
   @IsDefined()
@@ -20,17 +14,21 @@ export class CategoryMngDTO {
   @IsDefined()
   address: string;
 
-  @IsNotEmpty({ message: 'address is not empty !' })
-  @IsNumber()
+  @IsNotEmpty({ message: 'phone is not empty !' })
+  @IsString({ message: 'phone must be string type' })
   @IsDefined()
-  phone: number;
+  phone: string;
 
   @IsString({ message: 'type must be string type' })
   @IsNotEmpty({ message: 'type is not empty !' })
   @IsDefined()
   type: string;
 
-  @IsString({ message: 'note must be string type' })
+  @IsString({ message: 'email must be string type' })
+  @IsNotEmpty({ message: 'email is not empty !' })
+  @IsDefined()
+  email: string;
+
   note?: string;
 }
 
