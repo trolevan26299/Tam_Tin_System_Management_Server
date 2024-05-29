@@ -9,4 +9,4 @@ import { OrderManagementProvider } from './models/orderManagement.model';
   providers: [OrderManagementProvider, OrderManagerService],
   exports: [OrderManagerService],
 })
-export class SubCategoryManagerModule {}
+export class OrderManagerModule {}

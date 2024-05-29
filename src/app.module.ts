@@ -20,6 +20,7 @@ import { CategoryManagerModule } from './modules/category-management/categoryMan
 import { StaffManagerModule } from './modules/staff-management/staffManagement.module';
 import { SubCategoryManagerModule } from './modules/sub-category-management/subCategoryManagement.module';
 import { CustomerManagerModule } from './modules/customer-management/customerManagement.module';
+import { OrderManagerModule } from './modules/order-management/orderManagement.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CustomerManagerModule } from './modules/customer-management/customerMan
     StaffManagerModule,
     SubCategoryManagerModule,
     CustomerManagerModule,
+    OrderManagerModule,
   ],
   controllers: [AppController],
   providers: [

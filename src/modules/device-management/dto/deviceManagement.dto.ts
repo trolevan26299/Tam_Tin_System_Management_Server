@@ -18,6 +18,11 @@ export class CreateUpdateDeviceDTO {
   sub_category_id: string;
 
   @IsNumber()
+  @IsNotEmpty({ message: 'price is not empty !' })
+  @IsDefined()
+  price: number;
+
+  @IsNumber()
   @IsDefined()
   warranty?: number;
 

@@ -1,6 +1,7 @@
 import { CustomerManagementModel } from '@app/modules/customer-management/models/customerManagement.model';
+import { DeviceManagementModel } from '@app/modules/device-management/models/deviceManagement.model';
 import { getProviderByTypegooseClass } from '@app/transformers/model.transformer';
-import { prop } from '@typegoose/typegoose';
+import { Ref, modelOptions, prop } from '@typegoose/typegoose';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -10,6 +11,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 
+@modelOptions({ schemaOptions: { _id: false } })
 class Delivery {
   @IsString()
   @IsDefined()
@@ -27,42 +29,20 @@ class Delivery {
   trackingNumber: string;
 }
 
+@modelOptions({ schemaOptions: { _id: false } })
 class Item {
-  @IsString()
-  @IsDefined()
-  @prop({ required: true })
-  id_device: string;
-
-  @IsString()
-  @IsDefined()
-  @prop({ required: true })
-  name: string;
-
-  @IsString()
-  @IsDefined()
-  @prop({ required: true })
-  name_category: string;
+  @prop({ ref: () => DeviceManagementModel, required: true })
+  device: Ref<DeviceManagementModel>;
 
   @IsNumber()
   @IsDefined()
   @prop({ required: true })
   quantity: number;
-
-  @IsNumber()
-  @IsDefined()
-  @prop({ required: true })
-  price: number;
-
-  @IsString()
-  @prop()
-  note?: string;
 }
 
 export class OrderManagementModel {
-  @ValidateNested()
-  @Type(() => CustomerManagementModel)
-  @prop({ required: true, type: () => CustomerManagementModel })
-  customer: CustomerManagementModel;
+  @prop({ required: true, ref: CustomerManagementModel })
+  customer: Ref<CustomerManagementModel>;
 
   @ValidateNested()
   @Type(() => Delivery)
@@ -78,17 +58,12 @@ export class OrderManagementModel {
   @IsString()
   @IsDefined()
   @prop({ required: true })
-  createAt: string;
+  delivery_date: string;
 
   @IsNumber()
   @IsDefined()
   @prop({ required: true })
   totalAmount: number;
-
-  @IsNumber()
-  @IsDefined()
-  @prop({ required: true })
-  totalQuantity: number;
 
   @IsString()
   @prop()
