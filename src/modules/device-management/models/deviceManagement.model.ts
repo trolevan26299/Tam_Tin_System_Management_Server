@@ -19,6 +19,11 @@ export class DeviceManagementModel {
   sub_category_id: Ref<SubCategoryManagerModule>;
 
   @IsNumber()
+  @IsDefined()
+  @prop({ required: true })
+  price: number;
+
+  @IsNumber()
   @prop()
   warranty?: number;
 

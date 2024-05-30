@@ -15,13 +15,13 @@ export class SubCategoryDto {
   @MaxLength(255)
   name: string;
 
-  @IsNotEmpty({ message: 'number of device is not empty !' })
+  @IsNotEmpty({ message: 'number_of_device of device is not empty !' })
   @IsDefined()
   @IsNumber()
   number_of_device: number;
 
-  @IsNotEmpty({ message: 'position is not empty !' })
-  @IsString({ message: 'position must be string type' })
+  @IsNotEmpty({ message: 'category_id is not empty !' })
+  @IsString({ message: 'category_id must be string type' })
   @IsDefined()
   category_id: string;
 }
