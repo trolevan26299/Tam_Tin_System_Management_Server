@@ -1,18 +1,22 @@
 import { MongooseModel } from '@app/interfaces/mongoose.interface';
 import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Types } from 'mongoose';
 import {
   ListOrderDto,
   OrderMngDto,
   QueryOrderDto,
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
+import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
 
 @Injectable()
 export class OrderManagerService {
   constructor(
     @InjectModel(OrderManagementModel)
     private readonly orderManagementModel: MongooseModel<OrderManagementModel>,
+    @InjectModel(DeviceManagementModel)
+    private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
   ) {}
 
   public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
@@ -25,6 +29,8 @@ export class OrderManagerService {
       const page = Number(query.page) + 1 || 1;
       const items_per_page = Number(query.items_per_page) || 10;
       const keyword = query.keyword || '';
+      const fromDate = query.from_date ? new Date(query.from_date) : null;
+      const toDate = query.to_date ? new Date(query.to_date) : null;
 
       const skip = (page - 1) * items_per_page;
       const filter: any = {};
@@ -34,8 +40,30 @@ export class OrderManagerService {
         if (orderIdRegex.test(keyword)) {
           filter['_id'] = keyword;
         } else {
-          filter['items.device.name'] = { $regex: keyword, $options: 'i' };
+          const devices = await this.deviceManagementModel
+            .find({
+              name: { $regex: keyword, $options: 'i' },
+            })
+            .exec();
+
+          const deviceIds = devices.map((device) => device._id);
+
+          filter['items.device'] = { $in: deviceIds };
         }
+      }
+
+      if (fromDate || toDate) {
+        const dateFilter: any = {};
+        if (fromDate) {
+          dateFilter.$gte = fromDate
+            .toISOString()
+            .slice(0, 19)
+            .replace('T', ' ');
+        }
+        if (toDate) {
+          dateFilter.$lte = toDate.toISOString().slice(0, 19).replace('T', ' ');
+        }
+        filter['delivery_date'] = dateFilter;
       }
 
       const dataRes = await this.orderManagementModel
@@ -81,7 +109,46 @@ export class OrderManagerService {
       return order;
     } catch (error) {
       throw new HttpException(
-        'An error occurred while fetching the customer',
+        'An error occurred while fetching the order',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  public async updateOrderById(
+    id: string,
+    body: OrderMngDto,
+  ): Promise<OrderManagementModel> {
+    try {
+      const objectId = new Types.ObjectId(id);
+      const newOrder = await this.orderManagementModel.findOneAndUpdate(
+        {
+          _id: objectId,
+        },
+        body,
+        { new: true },
+      );
+
+      return newOrder as OrderManagementModel;
+    } catch (error) {
+      throw new HttpException(
+        'An error occurred while updating the order',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  public async deleteOrderById(id: string): Promise<OrderManagementModel> {
+    try {
+      const objectId = new Types.ObjectId(id);
+      const deleteOrder = await this.orderManagementModel.findOneAndDelete({
+        _id: objectId,
+      });
+
+      return deleteOrder as OrderManagementModel;
+    } catch (error) {
+      throw new HttpException(
+        'An error occurred while delete the order',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
