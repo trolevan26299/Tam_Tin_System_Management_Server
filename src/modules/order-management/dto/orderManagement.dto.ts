@@ -27,11 +27,6 @@ export class DeliveryDto {
   @IsDefined()
   shipBy: string;
 
-  @IsNotEmpty({ message: 'speedy is not empty !' })
-  @IsString()
-  @IsDefined()
-  speedy: string;
-
   @IsNotEmpty({ message: 'trackingNumber is not empty !' })
   @IsString()
   @IsDefined()

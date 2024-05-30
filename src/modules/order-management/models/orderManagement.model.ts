@@ -21,11 +21,6 @@ class Delivery {
   @IsString()
   @IsDefined()
   @prop({ required: true })
-  speedy: string;
-
-  @IsString()
-  @IsDefined()
-  @prop({ required: true })
   trackingNumber: string;
 }
 
