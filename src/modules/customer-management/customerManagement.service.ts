@@ -96,21 +96,28 @@ export class CustomerManagerService {
     id: string,
     body: CustomerMngDTO,
   ): Promise<CustomerManagementModel> {
-    try {
-      const objectId = new Types.ObjectId(id);
-      const newCustomer = await this.customerManagementModel.findOneAndUpdate(
-        { _id: objectId },
-        body,
-        { new: true },
-      );
+    const objectId = new Types.ObjectId(id);
+    const currentCustomer = (await this.customerManagementModel
+      .findById(id)
+      .exec()) as CustomerMngDTO;
 
-      return newCustomer as CustomerManagementModel;
-    } catch (error) {
-      throw new HttpException(
-        'An error occurred while updating the customer',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+    if (currentCustomer.email !== body?.email) {
+      const duplicateEmailCustomer = await this.customerManagementModel.findOne(
+        {
+          email: body?.email,
+        },
       );
+      if (duplicateEmailCustomer) {
+        throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+      }
     }
+    const newCustomer = await this.customerManagementModel.findOneAndUpdate(
+      { _id: objectId },
+      body,
+      { new: true },
+    );
+
+    return newCustomer as CustomerManagementModel;
   }
 
   public async deleteCustomerById(
