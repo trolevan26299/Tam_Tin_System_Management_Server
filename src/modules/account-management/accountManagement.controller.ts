@@ -1,7 +1,11 @@
 /* eslint-disable prettier/prettier */
+import { USER_TYPE } from '@app/constants/account';
+import { Roles } from '@app/decorators/roles.decorator';
+import { RolesGuard } from '@app/guards/roles.guard';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -20,6 +24,7 @@ import {
 import { AccountManagementModel } from './models/accountManagement.model';
 
 @ApiBearerAuth()
+@UseGuards(AuthGuard)
 @ApiTags('AccountManagement')
 @Controller('account')
 export class AccountManagerController {
@@ -28,7 +33,8 @@ export class AccountManagerController {
   ) {}
 
   // API CREATE ACCOUNT
-  @UseGuards(AuthGuard)
+  @Roles(USER_TYPE.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
   @Post()
   create(
     @Body() createAccountDto: createAccountDTO,
@@ -41,7 +47,6 @@ export class AccountManagerController {
   }
 
   // API GET ALL ACCOUNT
-  @UseGuards(AuthGuard)
   @Post('list')
   async getAllAccount(
     @Body() BodyGetAllAccountData: filterAccountDto,
@@ -50,7 +55,6 @@ export class AccountManagerController {
   }
 
   // API GET DETAIL ACCOUNT
-  @UseGuards(AuthGuard)
   @Get(':id')
   async getDetailAccount(
     @Param('id') id: string,
@@ -59,12 +63,22 @@ export class AccountManagerController {
   }
 
   // API UPDATE ACCOUNT
-  @UseGuards(AuthGuard)
+  @Roles(USER_TYPE.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
   @Put(':id')
   async updateAccount(
     @Param('id') id: string,
     @Body() updateAccountDto: updateAccountDTO,
   ): Promise<AccountManagementModel> {
     return this.accountManagementService.updateAccount(id, updateAccountDto);
+  }
+
+  @Roles(USER_TYPE.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @Delete(':id')
+  async deleteAccount(
+    @Param('id') id: string,
+  ): Promise<AccountManagementModel> {
+    return await this.accountManagementService.deleteAccount(id);
   }
 }

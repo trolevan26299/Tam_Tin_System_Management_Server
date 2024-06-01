@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -33,11 +34,11 @@ export class DeviceManagerController {
 
   // API GET ALL DEVICE
   @UseGuards(AuthGuard)
-  @Post('list')
+  @Get('list')
   async getAllDevice(
-    @Body() BodyGetAllDeviceData: filterDeviceDto,
+    @Query() QueryAllDeviceData: filterDeviceDto,
   ): Promise<DeviceManagementModel[]> {
-    return this.deviceManagementService.getAllDevice(BodyGetAllDeviceData);
+    return this.deviceManagementService.getAllDevice(QueryAllDeviceData);
   }
 
   // API GET DETAIL DEVICE
