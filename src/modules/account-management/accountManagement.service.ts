@@ -187,4 +187,20 @@ export class AccountManagerService {
       );
     }
   }
+
+  public async deleteAccount(id: string): Promise<AccountManagementModel> {
+    try {
+      const objectId = new Types.ObjectId(id);
+      const deleteAccount = await this.accountManagementModel.findOneAndDelete({
+        _id: objectId,
+      });
+
+      return deleteAccount as AccountManagementModel;
+    } catch (error) {
+      throw new HttpException(
+        'An error occurred while delete the account',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

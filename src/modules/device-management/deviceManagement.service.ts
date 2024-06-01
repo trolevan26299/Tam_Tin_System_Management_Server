@@ -53,16 +53,15 @@ export class DeviceManagerService {
   }
 
   //GET ALL DEVICE
-  public async getAllDevice(
-    BodyGetAllDeviceData: filterDeviceDto,
-  ): Promise<any> {
+  public async getAllDevice(QueryAllDeviceData: filterDeviceDto): Promise<any> {
     try {
-      const { data } = BodyGetAllDeviceData;
-      const items_per_page = Number(data?.items_per_page) || 10;
-      const page = Number(data?.page) + 1 || 1;
+      const query = QueryAllDeviceData;
+      const items_per_page = Number(query?.items_per_page) || 10;
+      const page = Number(query?.page) + 1 || 1;
       const skip = (page - 1) * items_per_page;
-      const keyword = data?.keyword || '';
-      const status = data?.status || 'all';
+      const keyword = query?.keyword || '';
+      const status = query?.status || 'all';
+      const belongToId = query?.belong_to;
       const filter: any = {};
 
       if (status !== 'all') {
@@ -75,6 +74,11 @@ export class DeviceManagerService {
           { id_device: { $regex: keyword, $options: 'i' } },
         ];
       }
+
+      if (belongToId) {
+        filter.belong_to = belongToId;
+      }
+
       const dataRes = await this.deviceManagementModel
         .find(filter)
         .limit(items_per_page)

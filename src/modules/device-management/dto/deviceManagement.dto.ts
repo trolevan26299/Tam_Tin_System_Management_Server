@@ -44,10 +44,9 @@ export class CreateUpdateDeviceDTO {
 }
 
 export class filterDeviceDto {
-  data: {
-    page?: string;
-    items_per_page?: string;
-    keyword?: string;
-    status: string;
-  };
+  page?: string;
+  items_per_page?: string;
+  keyword?: string;
+  status: string;
+  belong_to?: string;
 }
