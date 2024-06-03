@@ -26,6 +26,11 @@ export class CreateUpdateDeviceDTO {
   @IsDefined()
   warranty?: number;
 
+  @IsNumber()
+  @IsDefined()
+  @IsNotEmpty({ message: 'quantity is not empty !' })
+  quantity: number;
+
   @IsString({ message: 'status must be string type' })
   @IsDefined()
   status?: string;

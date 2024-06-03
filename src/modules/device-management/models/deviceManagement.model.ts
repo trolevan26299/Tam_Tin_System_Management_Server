@@ -27,6 +27,10 @@ export class DeviceManagementModel {
   @prop()
   warranty?: number;
 
+  @IsNumber()
+  @prop()
+  quantity: number;
+
   @IsString()
   @prop({ default: 'inventory' })
   status?: string;
