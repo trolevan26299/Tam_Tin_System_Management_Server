@@ -28,7 +28,7 @@ export class DeviceManagerService {
   //CREATE DEVICE
   public async createDevice(
     createDeviceDto: CreateUpdateDeviceDTO,
-  ): Promise<any> {
+  ): Promise<DeviceManagementModel> {
     try {
       const id_device = createDeviceDto;
       const duplicateIdDevice = await this.deviceManagementModel.findOne({
@@ -36,13 +36,18 @@ export class DeviceManagerService {
       });
 
       if (duplicateIdDevice) {
-        return {
-          status: 400,
-          message: 'Sản phẩm này đã bị trùng Id , Vui lòng cung cấp Id khác !',
-        };
+        throw new HttpException(
+          'Sản phẩm này đã bị trùng Id , Vui lòng cung cấp Id khác !',
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
-      const newDevice = new this.deviceManagementModel(createDeviceDto);
+      const newCreateDeviceDto = {
+        ...createDeviceDto,
+        status: [...createDeviceDto.status, { status: 'sold', quantity: 0 }],
+      };
+
+      const newDevice = new this.deviceManagementModel(newCreateDeviceDto);
       return newDevice.save();
     } catch (error) {
       throw new HttpException(

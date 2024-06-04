@@ -19,6 +19,7 @@ import {
 } from './dto/deviceManagement.dto';
 import { DeviceManagementModel } from './models/deviceManagement.model';
 
+@UseGuards(AuthGuard)
 @ApiBearerAuth()
 @ApiTags('DeviceManagement')
 @Controller('device')
@@ -26,14 +27,14 @@ export class DeviceManagerController {
   constructor(private readonly deviceManagementService: DeviceManagerService) {}
 
   // API CREATE DEVICE
-  @UseGuards(AuthGuard)
   @Post()
-  create(@Body() createDeviceDto: CreateUpdateDeviceDTO): Promise<any> {
+  async create(
+    @Body() createDeviceDto: CreateUpdateDeviceDTO,
+  ): Promise<DeviceManagementModel> {
     return this.deviceManagementService.createDevice(createDeviceDto);
   }
 
   // API GET ALL DEVICE
-  @UseGuards(AuthGuard)
   @Get('list')
   async getAllDevice(
     @Query() QueryAllDeviceData: filterDeviceDto,
@@ -42,7 +43,6 @@ export class DeviceManagerController {
   }
 
   // API GET DETAIL DEVICE
-  @UseGuards(AuthGuard)
   @Get(':id')
   async getDetailDevice(
     @Param('id') id: string,
@@ -51,7 +51,6 @@ export class DeviceManagerController {
   }
 
   // API UPDATE DEVICE
-  @UseGuards(AuthGuard)
   @Put(':id')
   async updateDevice(
     @Param('id') id: string,
@@ -60,7 +59,6 @@ export class DeviceManagerController {
     return this.deviceManagementService.updateDevice(id, updateDeviceDto);
   }
   // API UPDATE DEVICE
-  @UseGuards(AuthGuard)
   @Delete(':id')
   async deleteDevice(@Param('id') id: string): Promise<any> {
     return this.deviceManagementService.deleteDevice(id);
