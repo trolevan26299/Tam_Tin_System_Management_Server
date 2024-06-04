@@ -3,6 +3,7 @@ import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Types } from 'mongoose';
 import {
+  ItemDto,
   ListOrderDto,
   OrderMngDto,
   QueryOrderDto,
@@ -19,9 +20,10 @@ export class OrderManagerService {
     private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
   ) {}
 
-  public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
-    const newOrder = new this.orderManagementModel(body);
-    return newOrder.save();
+  public async createOrder(body: OrderMngDto): Promise<any> {
+    await this.updateDeviceInOrder(body.items);
+    // const newOrder = new this.orderManagementModel(body);
+    // return newOrder.save();
   }
 
   public async getAllOrder(query: QueryOrderDto): Promise<ListOrderDto> {
@@ -151,6 +153,30 @@ export class OrderManagerService {
         'An error occurred while delete the order',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  public async updateDeviceInOrder(items: ItemDto[]): Promise<any> {
+    for (const item of items) {
+      const device = await this.deviceManagementModel.findById(item.device);
+      if (!device) {
+        throw new HttpException(
+          `Device with ID ${item.device} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      console.log('device', device);
+      console.log('item', item);
+
+      // const orderItem = order.items.find(
+      //   (orderItem) => orderItem.device.toString() === item.device,
+      // );
+      // if (orderItem) {
+      //   orderItem.quantity = item.quantity;
+      // } else {
+      //   order.items.push({ device: item.device, quantity: item.quantity });
+      // }
     }
   }
 }
