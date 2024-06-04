@@ -166,9 +166,29 @@ export class OrderManagerService {
         );
       }
 
-      console.log('device', device);
-      console.log('item', item);
+      if (item?.device === device?.id && item?.quantity > 0) {
+        const updatedStatus = device?.status?.map((statusItem) => {
+          if (statusItem?.status === 'inventory') {
+            return {
+              ...statusItem,
+              quantity: statusItem?.quantity - item?.quantity,
+            };
+          } else if (statusItem?.status === 'sold') {
+            return {
+              ...statusItem,
+              quantity: statusItem?.quantity + item?.quantity,
+            };
+          } else {
+            return statusItem;
+          }
+        });
 
+        const newDevice = {
+          ...device.toObject(),
+          status: updatedStatus,
+        };
+        console.log('🚀 newDevice:', newDevice);
+      }
       // const orderItem = order.items.find(
       //   (orderItem) => orderItem.device.toString() === item.device,
       // );
