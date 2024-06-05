@@ -128,32 +128,25 @@ export class OrderManagerService {
   }
 
   public async updateOrderById(id: string, body: OrderMngDto): Promise<any> {
-    try {
-      // const objectId = new Types.ObjectId(id);
-      const orderById = await this.getOrderById(id);
+    // const objectId = new Types.ObjectId(id);
+    const orderById = await this.getOrderById(id);
 
-      await this.updateDeviceInOrder(
-        body?.items,
-        orderById?.items?.map((x) => ({
-          device: x.device?.id as string,
-          quantity: x?.quantity as number,
-        })) as ItemDto[],
-      );
-      // const newOrder = await this.orderManagementModel.findOneAndUpdate(
-      //   {
-      //     _id: objectId,
-      //   },
-      //   body,
-      //   { new: true },
-      // );
+    await this.updateDeviceInOrder(
+      body?.items,
+      orderById?.items?.map((x) => ({
+        device: x.device?.id as string,
+        quantity: x?.quantity as number,
+      })) as ItemDto[],
+    );
+    // const newOrder = await this.orderManagementModel.findOneAndUpdate(
+    //   {
+    //     _id: objectId,
+    //   },
+    //   body,
+    //   { new: true },
+    // );
 
-      // return newOrder as OrderManagementModel;
-    } catch (error) {
-      throw new HttpException(
-        'An error occurred while updating the order',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    // return newOrder as OrderManagementModel;
   }
 
   public async deleteOrderById(id: string): Promise<OrderManagementModel> {
@@ -221,6 +214,23 @@ export class OrderManagerService {
       // return !!updateDevice;
     };
 
+    const checkOrderQuantity = async (
+      deviceId: string,
+      orderQuantity: number,
+    ) => {
+      const device = await this.deviceManagementModel.findById(deviceId);
+      const inventoryStatus = device?.status?.find(
+        (statusItem) => statusItem?.status === 'inventory',
+      );
+      if (orderQuantity > Number(inventoryStatus?.quantity)) {
+        throw new HttpException(
+          `Order quantity (${orderQuantity}) exceeds inventory quantity (${inventoryStatus?.quantity}) of the device.`,
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      return true;
+    };
+
     if (oldItems) {
       const allDeviceIds = new Set([
         ...oldItems.map((item) => item.device),
@@ -235,13 +245,18 @@ export class OrderManagerService {
           if (newItem?.quantity !== oldItem?.quantity) {
             const quantityDifference =
               Number(newItem?.quantity) - Number(oldItem?.quantity);
-
-            const success = await updateDeviceStatus(
+            const checkQuantityWhenOrder = await checkOrderQuantity(
               deviceId,
-              Math.abs(quantityDifference),
-              quantityDifference > 0,
+              Number(newItem?.quantity),
             );
-            if (success) updateSuccess = true;
+            if (checkQuantityWhenOrder) {
+              const success = await updateDeviceStatus(
+                deviceId,
+                Math.abs(quantityDifference),
+                quantityDifference > 0,
+              );
+              if (success) updateSuccess = true;
+            }
           } else {
             updateSuccess = true;
           }
@@ -257,12 +272,18 @@ export class OrderManagerService {
     } else {
       for (const item of newItems) {
         if (item?.quantity > 0) {
-          const success = await updateDeviceStatus(
+          const checkQuantityWhenOrder = await checkOrderQuantity(
             item?.device,
-            item?.quantity,
-            true,
+            Number(item?.quantity),
           );
-          if (success) updateSuccess = true;
+          if (checkQuantityWhenOrder) {
+            const success = await updateDeviceStatus(
+              item?.device,
+              item?.quantity,
+              true,
+            );
+            if (success) updateSuccess = true;
+          }
         }
       }
     }
