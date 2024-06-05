@@ -21,9 +21,19 @@ export class OrderManagerService {
   ) {}
 
   public async createOrder(body: OrderMngDto): Promise<any> {
-    await this.updateDeviceInOrder(body.items);
-    // const newOrder = new this.orderManagementModel(body);
-    // return newOrder.save();
+    const existingOrder = await this.orderManagementModel.findOne({
+      'delivery.trackingNumber': body.delivery.trackingNumber,
+    });
+
+    if (existingOrder) {
+      throw new HttpException(
+        'Tracking number already exists',
+        HttpStatus.CONFLICT,
+      );
+    }
+    await this.updateDeviceInOrder(body?.items);
+    const newOrder = new this.orderManagementModel(body);
+    return newOrder.save();
   }
 
   public async getAllOrder(query: QueryOrderDto): Promise<ListOrderDto> {
@@ -117,21 +127,27 @@ export class OrderManagerService {
     }
   }
 
-  public async updateOrderById(
-    id: string,
-    body: OrderMngDto,
-  ): Promise<OrderManagementModel> {
+  public async updateOrderById(id: string, body: OrderMngDto): Promise<any> {
     try {
-      const objectId = new Types.ObjectId(id);
-      const newOrder = await this.orderManagementModel.findOneAndUpdate(
-        {
-          _id: objectId,
-        },
-        body,
-        { new: true },
-      );
+      // const objectId = new Types.ObjectId(id);
+      const orderById = await this.getOrderById(id);
 
-      return newOrder as OrderManagementModel;
+      await this.updateDeviceInOrder(
+        body?.items,
+        orderById?.items?.map((x) => ({
+          device: x.device?.id as string,
+          quantity: x?.quantity as number,
+        })) as ItemDto[],
+      );
+      // const newOrder = await this.orderManagementModel.findOneAndUpdate(
+      //   {
+      //     _id: objectId,
+      //   },
+      //   body,
+      //   { new: true },
+      // );
+
+      // return newOrder as OrderManagementModel;
     } catch (error) {
       throw new HttpException(
         'An error occurred while updating the order',
@@ -156,47 +172,101 @@ export class OrderManagerService {
     }
   }
 
-  public async updateDeviceInOrder(items: ItemDto[]): Promise<any> {
-    for (const item of items) {
-      const device = await this.deviceManagementModel.findById(item.device);
+  public async updateDeviceInOrder(
+    newItems: ItemDto[],
+    oldItems?: ItemDto[],
+  ): Promise<any> {
+    let updateSuccess;
+
+    const updateDeviceStatus = async (
+      deviceId: string,
+      quantity: number,
+      isNewItem: boolean,
+    ) => {
+      const device = await this.deviceManagementModel.findById(deviceId);
       if (!device) {
-        throw new HttpException(
-          `Device with ID ${item.device} not found`,
-          HttpStatus.NOT_FOUND,
-        );
+        console.error(`Device with ID ${deviceId} not found.`);
+        return false;
       }
 
-      if (item?.device === device?.id && item?.quantity > 0) {
-        const updatedStatus = device?.status?.map((statusItem) => {
-          if (statusItem?.status === 'inventory') {
-            return {
-              ...statusItem,
-              quantity: statusItem?.quantity - item?.quantity,
-            };
-          } else if (statusItem?.status === 'sold') {
-            return {
-              ...statusItem,
-              quantity: statusItem?.quantity + item?.quantity,
-            };
-          } else {
-            return statusItem;
-          }
-        });
+      const updatedStatus = device?.status?.map((statusItem) => {
+        if (statusItem?.status === 'inventory') {
+          return {
+            status: statusItem?.status,
+            quantity: isNewItem
+              ? statusItem.quantity - quantity
+              : statusItem.quantity + quantity,
+          };
+        } else if (statusItem?.status === 'sold') {
+          return {
+            status: statusItem?.status,
+            quantity: isNewItem
+              ? statusItem.quantity + quantity
+              : statusItem.quantity - quantity,
+          };
+        }
+        return statusItem;
+      });
 
-        const newDevice = {
-          ...device.toObject(),
-          status: updatedStatus,
-        };
-        console.log('🚀 newDevice:', newDevice);
-      }
-      // const orderItem = order.items.find(
-      //   (orderItem) => orderItem.device.toString() === item.device,
+      const updatedDeviceData = { status: updatedStatus };
+
+      console.log('🚀 updatedDeviceData:', updatedDeviceData);
+      console.log('🚀 device.status:', device.status);
+      // const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
+      //   { _id: device._id },
+      //   { $set: updatedDeviceData },
+      //   { new: true },
       // );
-      // if (orderItem) {
-      //   orderItem.quantity = item.quantity;
-      // } else {
-      //   order.items.push({ device: item.device, quantity: item.quantity });
-      // }
+
+      // return !!updateDevice;
+    };
+
+    if (oldItems) {
+      const allDeviceIds = new Set([
+        ...oldItems.map((item) => item.device),
+        ...newItems.map((item) => item.device),
+      ]);
+
+      for (const deviceId of allDeviceIds) {
+        const oldItem = oldItems.find((item) => item.device === deviceId);
+        const newItem = newItems.find((item) => item.device === deviceId);
+
+        if (newItem?.device === oldItem?.device) {
+          if (newItem?.quantity !== oldItem?.quantity) {
+            const quantityDifference =
+              Number(newItem?.quantity) - Number(oldItem?.quantity);
+
+            const success = await updateDeviceStatus(
+              deviceId,
+              Math.abs(quantityDifference),
+              quantityDifference > 0,
+            );
+            if (success) updateSuccess = true;
+          } else {
+            updateSuccess = true;
+          }
+        } else if (!newItem) {
+          const success = await updateDeviceStatus(
+            deviceId,
+            Number(oldItem?.quantity),
+            false,
+          );
+          if (success) updateSuccess = true;
+        }
+      }
+    } else {
+      for (const item of newItems) {
+        if (item?.quantity > 0) {
+          const success = await updateDeviceStatus(
+            item?.device,
+            item?.quantity,
+            true,
+          );
+          if (success) updateSuccess = true;
+        }
+      }
     }
+
+    return updateSuccess;
   }
 }
