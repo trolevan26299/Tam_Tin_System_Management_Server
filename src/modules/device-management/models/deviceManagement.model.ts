@@ -1,8 +1,28 @@
 /* eslint-disable prettier/prettier */
 import { SubCategoryManagerModule } from '@app/modules/sub-category-management/subCategoryManagement.module';
-import { Ref, prop } from '@typegoose/typegoose';
-import { IsDefined, IsNumber, IsString } from 'class-validator';
+import { Ref, modelOptions, prop } from '@typegoose/typegoose';
+import {
+  IsArray,
+  IsDefined,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 import { getProviderByTypegooseClass } from '../../../transformers/model.transformer';
+import { Type } from 'class-transformer';
+
+@modelOptions({ schemaOptions: { _id: false } })
+class Status {
+  @IsString()
+  @IsDefined()
+  @prop({ required: true })
+  status: string;
+
+  @IsNumber()
+  @IsDefined()
+  @prop({ required: true })
+  quantity: number;
+}
 
 export class DeviceManagementModel {
   @IsString()
@@ -27,17 +47,15 @@ export class DeviceManagementModel {
   @prop()
   warranty?: number;
 
-  @IsString()
-  @prop({ default: 'inventory' })
-  status?: string;
+  @ValidateNested({ each: true })
+  @Type(() => Status)
+  @IsArray()
+  @prop({ required: true, type: () => [Status] })
+  status: Status[];
 
   @IsString()
   @prop({ default: '' })
   belong_to?: string;
-
-  @IsString()
-  @prop()
-  delivery_date?: string;
 
   @IsString()
   @prop()

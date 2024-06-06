@@ -1,6 +1,25 @@
 /* eslint-disable prettier/prettier */
-import { IsDefined, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsDefined,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
 
+class StatusDTO {
+  @IsString()
+  @IsNotEmpty({ message: 'status is not empty !' })
+  @IsDefined()
+  status: string;
+
+  @IsNumber()
+  @IsNotEmpty({ message: 'quantity is not empty !' })
+  @IsDefined()
+  quantity: number;
+}
 export class CreateUpdateDeviceDTO {
   @IsString({ message: 'name must be string type' })
   @IsNotEmpty({ message: 'name is not empty !' })
@@ -26,17 +45,16 @@ export class CreateUpdateDeviceDTO {
   @IsDefined()
   warranty?: number;
 
-  @IsString({ message: 'status must be string type' })
+  @IsNotEmpty({ message: 'status is not empty !' })
+  @ValidateNested({ each: true })
+  @Type(() => StatusDTO)
+  @IsArray({ message: 'status must be an array of StatusDTO objects' })
   @IsDefined()
-  status?: string;
+  status: StatusDTO[];
 
   @IsString({ message: 'belong_to must be string type' })
   @IsDefined()
   belong_to?: string;
-
-  @IsString()
-  @IsDefined()
-  delivery_date?: string;
 
   @IsString({ message: 'note must be string type' })
   @IsDefined()
