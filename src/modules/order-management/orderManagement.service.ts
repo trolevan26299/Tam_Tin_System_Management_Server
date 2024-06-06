@@ -128,7 +128,7 @@ export class OrderManagerService {
   }
 
   public async updateOrderById(id: string, body: OrderMngDto): Promise<any> {
-    // const objectId = new Types.ObjectId(id);
+    const objectId = new Types.ObjectId(id);
     const orderById = await this.getOrderById(id);
 
     await this.updateDeviceInOrder(
@@ -138,15 +138,15 @@ export class OrderManagerService {
         quantity: x?.quantity as number,
       })) as ItemDto[],
     );
-    // const newOrder = await this.orderManagementModel.findOneAndUpdate(
-    //   {
-    //     _id: objectId,
-    //   },
-    //   body,
-    //   { new: true },
-    // );
+    const newOrder = await this.orderManagementModel.findOneAndUpdate(
+      {
+        _id: objectId,
+      },
+      body,
+      { new: true },
+    );
 
-    // return newOrder as OrderManagementModel;
+    return newOrder as OrderManagementModel;
   }
 
   public async deleteOrderById(id: string): Promise<OrderManagementModel> {
@@ -203,15 +203,13 @@ export class OrderManagerService {
 
       const updatedDeviceData = { status: updatedStatus };
 
-      console.log('🚀 updatedDeviceData:', updatedDeviceData);
-      console.log('🚀 device.status:', device.status);
-      // const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
-      //   { _id: device._id },
-      //   { $set: updatedDeviceData },
-      //   { new: true },
-      // );
+      const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
+        { _id: device._id },
+        { $set: updatedDeviceData },
+        { new: true },
+      );
 
-      // return !!updateDevice;
+      return !!updateDevice;
     };
 
     const checkOrderQuantity = async (
@@ -232,6 +230,7 @@ export class OrderManagerService {
     };
 
     if (oldItems) {
+      // update order and device
       const allDeviceIds = new Set([
         ...oldItems.map((item) => item.device),
         ...newItems.map((item) => item.device),
@@ -267,9 +266,23 @@ export class OrderManagerService {
             false,
           );
           if (success) updateSuccess = true;
+        } else if (!oldItem) {
+          const checkQuantityWhenOrder = await checkOrderQuantity(
+            deviceId,
+            Number(newItem?.quantity),
+          );
+          if (checkQuantityWhenOrder) {
+            const success = await updateDeviceStatus(
+              deviceId,
+              Number(newItem?.quantity),
+              true,
+            );
+            if (success) updateSuccess = true;
+          }
         }
       }
     } else {
+      // create order and update device
       for (const item of newItems) {
         if (item?.quantity > 0) {
           const checkQuantityWhenOrder = await checkOrderQuantity(
