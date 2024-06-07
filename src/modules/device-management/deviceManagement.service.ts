@@ -58,11 +58,12 @@ export class DeviceManagerService {
   }
 
   //GET ALL DEVICE
-  public async getAllDevice(QueryAllDeviceData: filterDeviceDto): Promise<any> {
+  public async getAllDevice(query: filterDeviceDto): Promise<any> {
     try {
-      const query = QueryAllDeviceData;
-      const items_per_page = Number(query?.items_per_page) || 10;
-      const page = Number(query?.page) + 1 || 1;
+      const hasQuery = Object.keys(query).length > 0;
+      const items_per_page =
+        hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
+      const page = hasQuery && query.page ? Number(query.page) + 1 : 1;
       const skip = (page - 1) * items_per_page;
       const keyword = query?.keyword || '';
       const status = query?.status || 'all';
@@ -84,11 +85,18 @@ export class DeviceManagerService {
         filter.belong_to = belongToId;
       }
 
-      const dataRes = await this.deviceManagementModel
+      const queryBuilder = this.deviceManagementModel
         .find(filter)
-        .limit(items_per_page)
-        .skip(skip)
-        .exec();
+        .populate('belong_to');
+
+      if (hasQuery) {
+        queryBuilder
+          .select(['-password', '-role'])
+          .limit(items_per_page)
+          .skip(skip);
+      }
+
+      const data = await queryBuilder.exec();
 
       const totalCount =
         await this.deviceManagementModel.countDocuments(filter);
@@ -96,7 +104,7 @@ export class DeviceManagerService {
       const nextPage = page + 1 > lastPage ? null : page + 1;
       const prevPage = page - 1 < 1 ? null : page - 1;
       return {
-        dataRes,
+        data,
         totalCount,
         currentPage: page,
         nextPage,
@@ -113,7 +121,10 @@ export class DeviceManagerService {
   //GET DETAIL DEVICE
   public async getDetailDevice(id: string): Promise<any> {
     try {
-      const device = await this.deviceManagementModel.findById(id).exec();
+      const device = await this.deviceManagementModel
+        .findById(id)
+        .populate('belong_to')
+        .exec();
       if (!device) {
         throw new HttpException('Device not found !', HttpStatus.NOT_FOUND);
       }

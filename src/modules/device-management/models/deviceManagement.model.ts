@@ -1,6 +1,8 @@
 /* eslint-disable prettier/prettier */
-import { SubCategoryManagerModule } from '@app/modules/sub-category-management/subCategoryManagement.module';
+import { CustomerManagementModel } from '@app/modules/customer-management/models/customerManagement.model';
+import { SubCategoryManagementModel } from '@app/modules/sub-category-management/models/subCategoryManagement.model';
 import { Ref, modelOptions, prop } from '@typegoose/typegoose';
+import { Type } from 'class-transformer';
 import {
   IsArray,
   IsDefined,
@@ -9,7 +11,6 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { getProviderByTypegooseClass } from '../../../transformers/model.transformer';
-import { Type } from 'class-transformer';
 
 @modelOptions({ schemaOptions: { _id: false } })
 class Status {
@@ -35,8 +36,8 @@ export class DeviceManagementModel {
   @prop({ required: true })
   id_device: string;
 
-  @prop({ ref: () => SubCategoryManagerModule, required: true })
-  sub_category_id: Ref<SubCategoryManagerModule>;
+  @prop({ ref: () => SubCategoryManagementModel, required: true })
+  sub_category_id: Ref<SubCategoryManagementModel>;
 
   @IsNumber()
   @IsDefined()
@@ -54,8 +55,8 @@ export class DeviceManagementModel {
   status: Status[];
 
   @IsString()
-  @prop({ default: '' })
-  belong_to?: string;
+  @prop({ ref: () => CustomerManagementModel })
+  belong_to?: Ref<CustomerManagementModel>;
 
   @IsString()
   @prop()

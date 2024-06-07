@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+import { ApiProperty } from '@nestjs/swagger';
 import { IsDefined, IsNotEmpty, IsString } from 'class-validator';
 
 export class AuthLoginDTO {
@@ -31,12 +32,14 @@ export class updateAccountDTO {
 }
 
 export class filterAccountDto {
-  data: {
-    page?: string;
-    items_per_page?: string;
-    keyword?: string;
-    status: string;
-  };
+  @ApiProperty({ required: false })
+  page: number;
+  @ApiProperty({ required: false })
+  items_per_page: number;
+  @ApiProperty({ required: false })
+  keyword: string;
+  @ApiProperty({ required: false })
+  status: string;
 }
 
 export interface TokenResult {
