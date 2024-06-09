@@ -26,11 +26,6 @@ export class DeliveryDto {
   @IsString()
   @IsDefined()
   shipBy: string;
-
-  @IsNotEmpty({ message: 'trackingNumber is not empty !' })
-  @IsString()
-  @IsDefined()
-  trackingNumber: string;
 }
 
 export class OrderMngDto {

@@ -56,7 +56,7 @@ export class DeviceManagementModel {
 
   @IsString()
   @prop({ ref: () => CustomerManagementModel })
-  belong_to?: Ref<CustomerManagementModel>;
+  belong_to?: string;
 
   @IsString()
   @prop()

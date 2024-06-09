@@ -67,7 +67,7 @@ export class DeviceManagerService {
       const skip = (page - 1) * items_per_page;
       const keyword = query?.keyword || '';
       const status = query?.status || 'all';
-      const belongToId = query?.belong_to;
+      const belong_to = query?.belong_to;
       const filter: any = {};
 
       if (status !== 'all') {
@@ -81,8 +81,8 @@ export class DeviceManagerService {
         ];
       }
 
-      if (belongToId) {
-        filter.belong_to = belongToId;
+      if (belong_to) {
+        filter.belong_to = belong_to;
       }
 
       const queryBuilder = this.deviceManagementModel

@@ -17,11 +17,6 @@ class Delivery {
   @IsDefined()
   @prop({ required: true })
   shipBy: string;
-
-  @IsString()
-  @IsDefined()
-  @prop({ required: true })
-  trackingNumber: string;
 }
 
 @modelOptions({ schemaOptions: { _id: false } })
