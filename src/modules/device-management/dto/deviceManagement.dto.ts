@@ -9,6 +9,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { DeviceManagementModel } from '../models/deviceManagement.model';
 
 class StatusDTO {
   @IsString()
@@ -73,4 +74,15 @@ export class filterDeviceDto {
   status?: string;
   @ApiProperty({ required: false })
   belong_to?: string;
+}
+
+export class ListDeviceDto {
+  data: DeviceManagementModel[];
+  totalCount: number;
+  currentPage: number;
+  lastPage: number;
+  nextPage: number | null;
+  prevPage: number | null;
+  inventoryCount: number | null;
+  soldCount: number | null;
 }
