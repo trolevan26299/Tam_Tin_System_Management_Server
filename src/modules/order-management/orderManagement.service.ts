@@ -10,6 +10,7 @@ import {
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
 import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
+import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
 
 @Injectable()
 export class OrderManagerService {
@@ -18,6 +19,8 @@ export class OrderManagerService {
     private readonly orderManagementModel: MongooseModel<OrderManagementModel>,
     @InjectModel(DeviceManagementModel)
     private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
+    @InjectModel(CustomerManagementModel)
+    private readonly customerManagementModel: MongooseModel<CustomerManagementModel>,
   ) {}
 
   public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
@@ -34,6 +37,7 @@ export class OrderManagerService {
       const keyword = query.keyword || '';
       const fromDate = query.from_date ? new Date(query.from_date) : null;
       const toDate = query.to_date ? new Date(query.to_date) : null;
+      const customerId = query.customerId;
 
       const skip = (page - 1) * items_per_page;
       const filter: any = {};
@@ -53,6 +57,10 @@ export class OrderManagerService {
 
           filter['items.device'] = { $in: deviceIds };
         }
+      }
+
+      if (customerId) {
+        filter.customer = customerId;
       }
 
       if (fromDate || toDate) {
@@ -97,7 +105,7 @@ export class OrderManagerService {
     }
   }
 
-  public async getOrderById(id: string): Promise<OrderManagementModel> {
+  public async getOrderById(id: string): Promise<any> {
     try {
       const order = await this.orderManagementModel
         .findById(id)
@@ -149,6 +157,10 @@ export class OrderManagerService {
       const deleteOrder = await this.orderManagementModel.findOneAndDelete({
         _id: objectId,
       });
+      console.log(
+        '🚀 ~ OrderManagerService ~ deleteOrderById ~ deleteOrder:',
+        deleteOrder,
+      );
 
       return deleteOrder as OrderManagementModel;
     } catch (error) {
@@ -160,7 +172,7 @@ export class OrderManagerService {
   }
 
   public async updateDeviceInOrder(
-    newItems: ItemDto[],
+    newItems?: ItemDto[],
     oldItems?: ItemDto[],
   ): Promise<any> {
     let updateSuccess;
@@ -224,20 +236,46 @@ export class OrderManagerService {
     };
 
     if (oldItems) {
-      // update order and device
-      const allDeviceIds = new Set([
-        ...oldItems.map((item) => item.device),
-        ...newItems.map((item) => item.device),
-      ]);
+      if (newItems) {
+        console.log('vao day khi co newItems');
 
-      for (const deviceId of allDeviceIds) {
-        const oldItem = oldItems.find((item) => item.device === deviceId);
-        const newItem = newItems.find((item) => item.device === deviceId);
+        // update order and device
+        const allDeviceIds = new Set([
+          ...oldItems.map((item) => item.device),
+          ...newItems.map((item) => item.device),
+        ]);
 
-        if (newItem?.device === oldItem?.device) {
-          if (newItem?.quantity !== oldItem?.quantity) {
-            const quantityDifference =
-              Number(newItem?.quantity) - Number(oldItem?.quantity);
+        for (const deviceId of allDeviceIds) {
+          const oldItem = oldItems.find((item) => item.device === deviceId);
+          const newItem = newItems.find((item) => item.device === deviceId);
+
+          if (newItem?.device === oldItem?.device) {
+            if (newItem?.quantity !== oldItem?.quantity) {
+              const quantityDifference =
+                Number(newItem?.quantity) - Number(oldItem?.quantity);
+              const checkQuantityWhenOrder = await checkOrderQuantity(
+                deviceId,
+                Number(newItem?.quantity),
+              );
+              if (checkQuantityWhenOrder) {
+                const success = await updateDeviceStatus(
+                  deviceId,
+                  Math.abs(quantityDifference),
+                  quantityDifference > 0,
+                );
+                if (success) updateSuccess = true;
+              }
+            } else {
+              updateSuccess = true;
+            }
+          } else if (!newItem) {
+            const success = await updateDeviceStatus(
+              deviceId,
+              Number(oldItem?.quantity),
+              false,
+            );
+            if (success) updateSuccess = true;
+          } else if (!oldItem) {
             const checkQuantityWhenOrder = await checkOrderQuantity(
               deviceId,
               Number(newItem?.quantity),
@@ -245,39 +283,19 @@ export class OrderManagerService {
             if (checkQuantityWhenOrder) {
               const success = await updateDeviceStatus(
                 deviceId,
-                Math.abs(quantityDifference),
-                quantityDifference > 0,
+                Number(newItem?.quantity),
+                true,
               );
               if (success) updateSuccess = true;
             }
-          } else {
-            updateSuccess = true;
-          }
-        } else if (!newItem) {
-          const success = await updateDeviceStatus(
-            deviceId,
-            Number(oldItem?.quantity),
-            false,
-          );
-          if (success) updateSuccess = true;
-        } else if (!oldItem) {
-          const checkQuantityWhenOrder = await checkOrderQuantity(
-            deviceId,
-            Number(newItem?.quantity),
-          );
-          if (checkQuantityWhenOrder) {
-            const success = await updateDeviceStatus(
-              deviceId,
-              Number(newItem?.quantity),
-              true,
-            );
-            if (success) updateSuccess = true;
           }
         }
+      } else {
+        console.log('vao day khi khong co newItems');
       }
     } else {
       // create order and update device
-      for (const item of newItems) {
+      for (const item of newItems as ItemDto[]) {
         if (item?.quantity > 0) {
           const checkQuantityWhenOrder = await checkOrderQuantity(
             item?.device,
