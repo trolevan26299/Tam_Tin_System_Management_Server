@@ -1,4 +1,5 @@
 /* eslint-disable prettier/prettier */
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -62,9 +63,14 @@ export class CreateUpdateDeviceDTO {
 }
 
 export class filterDeviceDto {
+  @ApiProperty({ required: false })
   page?: string;
+  @ApiProperty({ required: false })
   items_per_page?: string;
+  @ApiProperty({ required: false })
   keyword?: string;
-  status: string;
+  @ApiProperty({ required: false })
+  status?: string;
+  @ApiProperty({ required: false })
   belong_to?: string;
 }

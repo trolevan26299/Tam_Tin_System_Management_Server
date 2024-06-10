@@ -70,10 +70,6 @@ export class DeviceManagerService {
       const belong_to = query?.belong_to;
       const filter: any = {};
 
-      if (status !== 'all') {
-        filter.status = status;
-      }
-
       if (keyword) {
         filter.$or = [
           { name: { $regex: keyword, $options: 'i' } },
@@ -96,8 +92,23 @@ export class DeviceManagerService {
           .skip(skip);
       }
 
-      const data = await queryBuilder.exec();
+      let data = await queryBuilder.exec();
 
+      if (status === 'sold') {
+        data = data.filter((device) => {
+          const soldStatus = device.status.find(
+            (status) => status.status === 'sold',
+          );
+          return soldStatus && soldStatus.quantity > 0;
+        });
+      } else if (status === 'inventory') {
+        data = data?.filter((device) => {
+          const inventoryStatus = device.status.find(
+            (status) => status.status === 'inventory',
+          );
+          return inventoryStatus && inventoryStatus.quantity > 0;
+        });
+      }
       const totalCount =
         await this.deviceManagementModel.countDocuments(filter);
       const lastPage = Math.ceil(totalCount / items_per_page);
