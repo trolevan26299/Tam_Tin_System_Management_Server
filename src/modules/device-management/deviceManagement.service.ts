@@ -58,20 +58,17 @@ export class DeviceManagerService {
   }
 
   //GET ALL DEVICE
-  public async getAllDevice(QueryAllDeviceData: filterDeviceDto): Promise<any> {
+  public async getAllDevice(query: filterDeviceDto): Promise<any> {
     try {
-      const query = QueryAllDeviceData;
-      const items_per_page = Number(query?.items_per_page) || 10;
-      const page = Number(query?.page) + 1 || 1;
+      const hasQuery = Object.keys(query).length > 0;
+      const items_per_page =
+        hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
+      const page = hasQuery && query.page ? Number(query.page) + 1 : 1;
       const skip = (page - 1) * items_per_page;
       const keyword = query?.keyword || '';
       const status = query?.status || 'all';
-      const belongToId = query?.belong_to;
+      const belong_to = query?.belong_to;
       const filter: any = {};
-
-      if (status !== 'all') {
-        filter.status = status;
-      }
 
       if (keyword) {
         filter.$or = [
@@ -80,23 +77,45 @@ export class DeviceManagerService {
         ];
       }
 
-      if (belongToId) {
-        filter.belong_to = belongToId;
+      if (belong_to) {
+        filter.belong_to = belong_to;
       }
 
-      const dataRes = await this.deviceManagementModel
+      const queryBuilder = this.deviceManagementModel
         .find(filter)
-        .limit(items_per_page)
-        .skip(skip)
-        .exec();
+        .populate('belong_to');
 
+      if (hasQuery) {
+        queryBuilder
+          .select(['-password', '-role'])
+          .limit(items_per_page)
+          .skip(skip);
+      }
+
+      let data = await queryBuilder.exec();
+
+      if (status === 'sold') {
+        data = data.filter((device) => {
+          const soldStatus = device.status.find(
+            (status) => status.status === 'sold',
+          );
+          return soldStatus && soldStatus.quantity > 0;
+        });
+      } else if (status === 'inventory') {
+        data = data?.filter((device) => {
+          const inventoryStatus = device.status.find(
+            (status) => status.status === 'inventory',
+          );
+          return inventoryStatus && inventoryStatus.quantity > 0;
+        });
+      }
       const totalCount =
         await this.deviceManagementModel.countDocuments(filter);
       const lastPage = Math.ceil(totalCount / items_per_page);
       const nextPage = page + 1 > lastPage ? null : page + 1;
       const prevPage = page - 1 < 1 ? null : page - 1;
       return {
-        dataRes,
+        data,
         totalCount,
         currentPage: page,
         nextPage,
@@ -113,7 +132,10 @@ export class DeviceManagerService {
   //GET DETAIL DEVICE
   public async getDetailDevice(id: string): Promise<any> {
     try {
-      const device = await this.deviceManagementModel.findById(id).exec();
+      const device = await this.deviceManagementModel
+        .findById(id)
+        .populate('belong_to')
+        .exec();
       if (!device) {
         throw new HttpException('Device not found !', HttpStatus.NOT_FOUND);
       }

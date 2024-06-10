@@ -21,8 +21,10 @@ export class CategoryManagerService {
     query: QueryCategoryDto,
   ): Promise<ListCategoryDto> {
     try {
-      const page = Number(query.page) + 1 || 1;
-      const items_per_page = Number(query.items_per_page) || 10;
+      const hasQuery = Object.keys(query).length > 0;
+      const page = hasQuery && query.page ? Number(query.page) + 1 : 1;
+      const items_per_page =
+        hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
       const keyword = query.keyword || '';
 
       const skip = (page - 1) * items_per_page;
@@ -32,11 +34,13 @@ export class CategoryManagerService {
         filter.$or = [{ name: { $regex: keyword, $options: 'i' } }];
       }
 
-      const dataRes = await this.categoryManagementModel
-        .find(filter)
-        .limit(items_per_page)
-        .skip(skip)
-        .exec();
+      const queryBuilder = this.categoryManagementModel.find(filter);
+
+      if (hasQuery) {
+        queryBuilder.limit(items_per_page).skip(skip);
+      }
+
+      const dataRes = await queryBuilder.exec();
 
       const totalCount =
         await this.categoryManagementModel.countDocuments(filter);

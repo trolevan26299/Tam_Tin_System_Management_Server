@@ -20,19 +20,10 @@ export class OrderManagerService {
     private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
   ) {}
 
-  public async createOrder(body: OrderMngDto): Promise<any> {
-    const existingOrder = await this.orderManagementModel.findOne({
-      'delivery.trackingNumber': body.delivery.trackingNumber,
-    });
-
-    if (existingOrder) {
-      throw new HttpException(
-        'Tracking number already exists',
-        HttpStatus.CONFLICT,
-      );
-    }
+  public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
     await this.updateDeviceInOrder(body?.items);
     const newOrder = new this.orderManagementModel(body);
+
     return newOrder.save();
   }
 
@@ -127,7 +118,10 @@ export class OrderManagerService {
     }
   }
 
-  public async updateOrderById(id: string, body: OrderMngDto): Promise<any> {
+  public async updateOrderById(
+    id: string,
+    body: OrderMngDto,
+  ): Promise<OrderManagementModel> {
     const objectId = new Types.ObjectId(id);
     const orderById = await this.getOrderById(id);
 

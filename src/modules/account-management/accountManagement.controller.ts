@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
@@ -47,11 +48,11 @@ export class AccountManagerController {
   }
 
   // API GET ALL ACCOUNT
-  @Post('list')
+  @Get('list')
   async getAllAccount(
-    @Body() BodyGetAllAccountData: filterAccountDto,
+    @Query() query: filterAccountDto,
   ): Promise<AccountManagementModel[]> {
-    return this.accountManagementService.getAllAccount(BodyGetAllAccountData);
+    return this.accountManagementService.getAllAccount(query);
   }
 
   // API GET DETAIL ACCOUNT

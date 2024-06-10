@@ -75,15 +75,16 @@ export class AccountManagerService {
   }
 
   //GET ALL ACCOUNT
-  public async getAllAccount(
-    BodyGetAllAccountData: filterAccountDto,
-  ): Promise<any> {
+  public async getAllAccount(query: filterAccountDto): Promise<any> {
     try {
-      const { data } = BodyGetAllAccountData;
-      const items_per_page = Number(data?.items_per_page) || 10;
-      const page = Number(data?.page) + 1 || 1;
-      const keyword = data?.keyword || '';
-      const status = data?.status || 'all';
+      const hasQuery = Object.keys(query).length > 0;
+      const items_per_page =
+        hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
+      const page = hasQuery && query.page ? Number(query.page) + 1 : 1;
+      const keyword = query?.keyword || '';
+      const status = query?.status || 'all';
+
+      const skip = (page - 1) * items_per_page;
       const filter: any = {};
 
       if (status !== 'all') {
@@ -93,12 +94,16 @@ export class AccountManagerService {
       if (keyword) {
         filter.$or = [{ username: { $regex: keyword, $options: 'i' } }];
       }
-      const dataRes = await this.accountManagementModel
-        .find(filter)
-        .select(['-password', '-role'])
-        .limit(items_per_page)
-        .skip(1)
-        .exec();
+
+      const queryBuilder = this.accountManagementModel.find(filter);
+
+      if (hasQuery) {
+        queryBuilder
+          .select(['-password', '-role'])
+          .limit(items_per_page)
+          .skip(skip);
+      }
+      const data = await queryBuilder.exec();
 
       const totalCount =
         await this.accountManagementModel.countDocuments(filter);
@@ -106,7 +111,7 @@ export class AccountManagerService {
       const nextPage = page + 1 > lastPage ? null : page + 1;
       const prevPage = page - 1 < 1 ? null : page - 1;
       return {
-        dataRes,
+        data,
         totalCount,
         currentPage: page,
         nextPage,
