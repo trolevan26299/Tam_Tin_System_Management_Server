@@ -121,8 +121,6 @@ export class DeviceManagerService {
         currentPage: page,
         nextPage,
         prevPage,
-        // inventoryCount: inventoryCount || 0,
-        // soldCount: soldCount || 0,
       };
     } catch (error) {
       throw new HttpException(

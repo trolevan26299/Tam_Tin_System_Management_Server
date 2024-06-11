@@ -157,9 +157,13 @@ export class OrderManagerService {
       const deleteOrder = await this.orderManagementModel.findOneAndDelete({
         _id: objectId,
       });
-      console.log(
-        '🚀 ~ OrderManagerService ~ deleteOrderById ~ deleteOrder:',
-        deleteOrder,
+
+      await this.updateDeviceInOrder(
+        [],
+        deleteOrder?.items?.map((x) => ({
+          device: x?.device?.toString(),
+          quantity: x?.quantity as number,
+        })) as ItemDto[],
       );
 
       return deleteOrder as OrderManagementModel;
@@ -236,46 +240,20 @@ export class OrderManagerService {
     };
 
     if (oldItems) {
-      if (newItems) {
-        console.log('vao day khi co newItems');
+      // update order and device
+      const allDeviceIds = new Set([
+        ...oldItems.map((item) => item.device),
+        ...(newItems?.map((item) => item.device) || []),
+      ]);
 
-        // update order and device
-        const allDeviceIds = new Set([
-          ...oldItems.map((item) => item.device),
-          ...newItems.map((item) => item.device),
-        ]);
+      for (const deviceId of allDeviceIds) {
+        const oldItem = oldItems.find((item) => item.device === deviceId);
+        const newItem = newItems?.find((item) => item.device === deviceId);
 
-        for (const deviceId of allDeviceIds) {
-          const oldItem = oldItems.find((item) => item.device === deviceId);
-          const newItem = newItems.find((item) => item.device === deviceId);
-
-          if (newItem?.device === oldItem?.device) {
-            if (newItem?.quantity !== oldItem?.quantity) {
-              const quantityDifference =
-                Number(newItem?.quantity) - Number(oldItem?.quantity);
-              const checkQuantityWhenOrder = await checkOrderQuantity(
-                deviceId,
-                Number(newItem?.quantity),
-              );
-              if (checkQuantityWhenOrder) {
-                const success = await updateDeviceStatus(
-                  deviceId,
-                  Math.abs(quantityDifference),
-                  quantityDifference > 0,
-                );
-                if (success) updateSuccess = true;
-              }
-            } else {
-              updateSuccess = true;
-            }
-          } else if (!newItem) {
-            const success = await updateDeviceStatus(
-              deviceId,
-              Number(oldItem?.quantity),
-              false,
-            );
-            if (success) updateSuccess = true;
-          } else if (!oldItem) {
+        if (newItem?.device === oldItem?.device) {
+          if (newItem?.quantity !== oldItem?.quantity) {
+            const quantityDifference =
+              Number(newItem?.quantity) - Number(oldItem?.quantity);
             const checkQuantityWhenOrder = await checkOrderQuantity(
               deviceId,
               Number(newItem?.quantity),
@@ -283,15 +261,35 @@ export class OrderManagerService {
             if (checkQuantityWhenOrder) {
               const success = await updateDeviceStatus(
                 deviceId,
-                Number(newItem?.quantity),
-                true,
+                Math.abs(quantityDifference),
+                quantityDifference > 0,
               );
               if (success) updateSuccess = true;
             }
+          } else {
+            updateSuccess = true;
+          }
+        } else if (!newItem) {
+          const success = await updateDeviceStatus(
+            deviceId,
+            Number(oldItem?.quantity),
+            false,
+          );
+          if (success) updateSuccess = true;
+        } else if (!oldItem) {
+          const checkQuantityWhenOrder = await checkOrderQuantity(
+            deviceId,
+            Number(newItem?.quantity),
+          );
+          if (checkQuantityWhenOrder) {
+            const success = await updateDeviceStatus(
+              deviceId,
+              Number(newItem?.quantity),
+              true,
+            );
+            if (success) updateSuccess = true;
           }
         }
-      } else {
-        console.log('vao day khi khong co newItems');
       }
     } else {
       // create order and update device
