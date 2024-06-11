@@ -73,6 +73,8 @@ export class QueryOrderDto {
   from_date: string;
   @ApiProperty({ required: false })
   to_date: string;
+  @ApiProperty({ required: false })
+  customerId: string;
 }
 
 export class ListOrderDto {

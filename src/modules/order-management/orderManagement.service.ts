@@ -10,6 +10,7 @@ import {
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
 import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
+import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
 
 @Injectable()
 export class OrderManagerService {
@@ -18,6 +19,8 @@ export class OrderManagerService {
     private readonly orderManagementModel: MongooseModel<OrderManagementModel>,
     @InjectModel(DeviceManagementModel)
     private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
+    @InjectModel(CustomerManagementModel)
+    private readonly customerManagementModel: MongooseModel<CustomerManagementModel>,
   ) {}
 
   public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
@@ -34,6 +37,7 @@ export class OrderManagerService {
       const keyword = query.keyword || '';
       const fromDate = query.from_date ? new Date(query.from_date) : null;
       const toDate = query.to_date ? new Date(query.to_date) : null;
+      const customerId = query.customerId;
 
       const skip = (page - 1) * items_per_page;
       const filter: any = {};
@@ -53,6 +57,10 @@ export class OrderManagerService {
 
           filter['items.device'] = { $in: deviceIds };
         }
+      }
+
+      if (customerId) {
+        filter.customer = customerId;
       }
 
       if (fromDate || toDate) {
@@ -97,7 +105,7 @@ export class OrderManagerService {
     }
   }
 
-  public async getOrderById(id: string): Promise<OrderManagementModel> {
+  public async getOrderById(id: string): Promise<any> {
     try {
       const order = await this.orderManagementModel
         .findById(id)
@@ -150,6 +158,14 @@ export class OrderManagerService {
         _id: objectId,
       });
 
+      await this.updateDeviceInOrder(
+        [],
+        deleteOrder?.items?.map((x) => ({
+          device: x?.device?.toString(),
+          quantity: x?.quantity as number,
+        })) as ItemDto[],
+      );
+
       return deleteOrder as OrderManagementModel;
     } catch (error) {
       throw new HttpException(
@@ -160,7 +176,7 @@ export class OrderManagerService {
   }
 
   public async updateDeviceInOrder(
-    newItems: ItemDto[],
+    newItems?: ItemDto[],
     oldItems?: ItemDto[],
   ): Promise<any> {
     let updateSuccess;
@@ -227,12 +243,12 @@ export class OrderManagerService {
       // update order and device
       const allDeviceIds = new Set([
         ...oldItems.map((item) => item.device),
-        ...newItems.map((item) => item.device),
+        ...(newItems?.map((item) => item.device) || []),
       ]);
 
       for (const deviceId of allDeviceIds) {
         const oldItem = oldItems.find((item) => item.device === deviceId);
-        const newItem = newItems.find((item) => item.device === deviceId);
+        const newItem = newItems?.find((item) => item.device === deviceId);
 
         if (newItem?.device === oldItem?.device) {
           if (newItem?.quantity !== oldItem?.quantity) {
@@ -277,7 +293,7 @@ export class OrderManagerService {
       }
     } else {
       // create order and update device
-      for (const item of newItems) {
+      for (const item of newItems as ItemDto[]) {
         if (item?.quantity > 0) {
           const checkQuantityWhenOrder = await checkOrderQuantity(
             item?.device,

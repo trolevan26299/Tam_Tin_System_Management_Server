@@ -109,6 +109,7 @@ export class DeviceManagerService {
           return inventoryStatus && inventoryStatus.quantity > 0;
         });
       }
+
       const totalCount =
         await this.deviceManagementModel.countDocuments(filter);
       const lastPage = Math.ceil(totalCount / items_per_page);
