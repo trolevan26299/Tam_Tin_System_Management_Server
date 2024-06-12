@@ -20,6 +20,12 @@ export class AccountManagementModel {
   @IsString()
   @prop({ default: 'active' })
   status?: string;
+
+  @prop()
+  regDt?: string;
+
+  @prop()
+  modDt?: string;
 }
 
 export const AccountManagementProvider = getProviderByTypegooseClass(

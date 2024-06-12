@@ -54,13 +54,12 @@ export class CreateUpdateDeviceDTO {
   @IsDefined()
   status: StatusDTO[];
 
-  @IsString({ message: 'belong_to must be string type' })
-  @IsDefined()
-  belong_to?: string;
-
   @IsString({ message: 'note must be string type' })
   @IsDefined()
   note?: string;
+
+  regDt?: string;
+  modDt?: string;
 }
 
 export class filterDeviceDto {
@@ -72,8 +71,6 @@ export class filterDeviceDto {
   keyword?: string;
   @ApiProperty({ required: false })
   status?: string;
-  @ApiProperty({ required: false })
-  belong_to?: string;
 }
 
 export class ListDeviceDto {
@@ -83,6 +80,4 @@ export class ListDeviceDto {
   lastPage: number;
   nextPage: number | null;
   prevPage: number | null;
-  inventoryCount: number | null;
-  soldCount: number | null;
 }

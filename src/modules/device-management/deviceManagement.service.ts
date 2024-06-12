@@ -1,15 +1,16 @@
 /* eslint-disable prettier/prettier */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import lodash from 'lodash';
-import { MongooseModel } from '../../interfaces/mongoose.interface';
-import { InjectModel } from '../../transformers/model.transformer';
-import { DeviceManagementModel } from './models/deviceManagement.model';
+import moment from 'moment';
 import { Types } from 'mongoose';
 import * as APP_CONFIG from '../../app.config';
+import { MongooseModel } from '../../interfaces/mongoose.interface';
+import { InjectModel } from '../../transformers/model.transformer';
 import {
   CreateUpdateDeviceDTO,
   filterDeviceDto,
 } from './dto/deviceManagement.dto';
+import { DeviceManagementModel } from './models/deviceManagement.model';
 
 @Injectable()
 export class DeviceManagerService {
@@ -28,7 +29,7 @@ export class DeviceManagerService {
   //CREATE DEVICE
   public async createDevice(
     createDeviceDto: CreateUpdateDeviceDTO,
-  ): Promise<DeviceManagementModel> {
+  ): Promise<any> {
     try {
       const id_device = createDeviceDto;
       const duplicateIdDevice = await this.deviceManagementModel.findOne({
@@ -45,6 +46,7 @@ export class DeviceManagerService {
       const newCreateDeviceDto = {
         ...createDeviceDto,
         status: [...createDeviceDto.status, { status: 'sold', quantity: 0 }],
+        regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       };
 
       const newDevice = new this.deviceManagementModel(newCreateDeviceDto);
@@ -67,7 +69,6 @@ export class DeviceManagerService {
       const skip = (page - 1) * items_per_page;
       const keyword = query?.keyword || '';
       const status = query?.status || 'all';
-      const belong_to = query?.belong_to;
       const filter: any = {};
 
       if (keyword) {
@@ -77,22 +78,13 @@ export class DeviceManagerService {
         ];
       }
 
-      if (belong_to) {
-        filter.belong_to = belong_to;
-      }
-
-      const queryBuilder = this.deviceManagementModel
-        .find(filter)
-        .populate('belong_to');
+      const queryBuilder = this.deviceManagementModel.find(filter);
 
       if (hasQuery) {
-        queryBuilder
-          .select(['-password', '-role'])
-          .limit(items_per_page)
-          .skip(skip);
+        queryBuilder.limit(items_per_page).skip(skip);
       }
 
-      let data = await queryBuilder.exec();
+      let data = await queryBuilder.sort({ regDt: -1 }).exec();
 
       if (status === 'sold') {
         data = data.filter((device) => {
@@ -133,10 +125,8 @@ export class DeviceManagerService {
   //GET DETAIL DEVICE
   public async getDetailDevice(id: string): Promise<any> {
     try {
-      const device = await this.deviceManagementModel
-        .findById(id)
-        .populate('belong_to')
-        .exec();
+      const device = await this.deviceManagementModel.findById(id).exec();
+
       if (!device) {
         throw new HttpException('Device not found !', HttpStatus.NOT_FOUND);
       }
@@ -155,11 +145,14 @@ export class DeviceManagerService {
     updateDeviceDto: CreateUpdateDeviceDTO,
   ): Promise<any> {
     try {
-      const accountUpdate = { ...updateDeviceDto };
+      const deviceUpdate = {
+        ...updateDeviceDto,
+        modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      };
       const objectId = new Types.ObjectId(id);
       const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
         { _id: objectId },
-        accountUpdate,
+        deviceUpdate,
         { new: true },
       );
       return updateDevice;
