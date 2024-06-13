@@ -1,5 +1,4 @@
 /* eslint-disable prettier/prettier */
-import { CustomerManagementModel } from '@app/modules/customer-management/models/customerManagement.model';
 import { SubCategoryManagementModel } from '@app/modules/sub-category-management/models/subCategoryManagement.model';
 import { Ref, modelOptions, prop } from '@typegoose/typegoose';
 import { Type } from 'class-transformer';
@@ -55,12 +54,14 @@ export class DeviceManagementModel {
   status: Status[];
 
   @IsString()
-  @prop({ ref: () => CustomerManagementModel })
-  belong_to?: string;
-
-  @IsString()
   @prop()
   note?: string;
+
+  @prop()
+  regDt?: string;
+
+  @prop()
+  modDt?: string;
 }
 
 export const DeviceManagementProvider = getProviderByTypegooseClass(

@@ -13,9 +13,10 @@ import {
   updateAccountDTO,
 } from './dto/accountManagement.dto';
 
+import { USER_TYPE } from '@app/constants/account';
+import moment from 'moment';
 import { Types } from 'mongoose';
 import * as APP_CONFIG from '../../app.config';
-import { USER_TYPE } from '@app/constants/account';
 
 @Injectable()
 export class AccountManagerService {
@@ -32,7 +33,6 @@ export class AccountManagerService {
 
   // VALIDATE AUTH DATA
   public validateAuthData(payload: any): Promise<any> {
-    console.log('payload', payload);
     const isVerified = lodash.isEqual(payload.data, APP_CONFIG.AUTH.data);
     return isVerified ? payload.data : null;
   }
@@ -64,6 +64,7 @@ export class AccountManagerService {
       const newAccount = new this.accountManagementModel({
         username: userName,
         password: passwordHash,
+        regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       });
       return newAccount.save();
     } catch (error) {
@@ -103,7 +104,7 @@ export class AccountManagerService {
           .limit(items_per_page)
           .skip(skip);
       }
-      const data = await queryBuilder.exec();
+      const data = await queryBuilder.sort({ regDt: -1 }).exec();
 
       const totalCount =
         await this.accountManagementModel.countDocuments(filter);
@@ -149,14 +150,15 @@ export class AccountManagerService {
     id: string,
     updateAccountDto: updateAccountDTO,
   ): Promise<AccountManagementModel> {
-    try {
-      const { oldPassword, password, status } = updateAccountDto;
-      const account = await this.accountManagementModel.findById(id).exec();
+    const { oldPassword, password, status } = updateAccountDto;
+    const account = await this.accountManagementModel.findById(id).exec();
+    const objectId = new Types.ObjectId(id);
 
-      if (!account) {
-        throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
-      }
+    if (!account) {
+      throw new HttpException('Account not found', HttpStatus.NOT_FOUND);
+    }
 
+    if (oldPassword && password) {
       const isMatch = this.comparePasswords(
         String(oldPassword),
         String(account?.password),
@@ -171,25 +173,29 @@ export class AccountManagerService {
 
       const newPwd = decodeMD5(String(password));
 
-      const objectId = new Types.ObjectId(id);
       const accountUpdate = {
         password: newPwd,
         status: status || account?.status,
+        modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       };
-
       const updateAccount = await this.accountManagementModel.findOneAndUpdate(
         { _id: objectId },
         accountUpdate,
         { new: true },
       );
-
       return updateAccount as AccountManagementModel;
-    } catch (error) {
-      console.error('Error updating account:', error);
-      throw new HttpException(
-        'An error occurred while updating the account',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+    } else {
+      const accountUpdate = {
+        password: account?.password,
+        status: status || account?.status,
+        modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      };
+      const updateAccount = await this.accountManagementModel.findOneAndUpdate(
+        { _id: objectId },
+        accountUpdate,
+        { new: true },
       );
+      return updateAccount as AccountManagementModel;
     }
   }
 
