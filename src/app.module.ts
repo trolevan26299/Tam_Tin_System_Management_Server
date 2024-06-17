@@ -21,6 +21,7 @@ import { StaffManagerModule } from './modules/staff-management/staffManagement.m
 import { SubCategoryManagerModule } from './modules/sub-category-management/subCategoryManagement.module';
 import { CustomerManagerModule } from './modules/customer-management/customerManagement.module';
 import { OrderManagerModule } from './modules/order-management/orderManagement.module';
+import { KanbanModule } from './modules/kanban/kanban.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { OrderManagerModule } from './modules/order-management/orderManagement.m
     SubCategoryManagerModule,
     CustomerManagerModule,
     OrderManagerModule,
+    KanbanModule,
   ],
   controllers: [AppController],
   providers: [
