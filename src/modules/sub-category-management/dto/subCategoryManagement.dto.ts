@@ -1,12 +1,6 @@
-import {
-  IsDefined,
-  IsNotEmpty,
-  IsNumber,
-  IsString,
-  MaxLength,
-} from 'class-validator';
-import { SubCategoryManagementModel } from '../models/subCategoryManagement.model';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsDefined, IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { SubCategoryManagementModel } from '../models/subCategoryManagement.model';
 
 export class SubCategoryDto {
   @IsNotEmpty({ message: 'name is not empty !' })
@@ -15,15 +9,15 @@ export class SubCategoryDto {
   @MaxLength(255)
   name: string;
 
-  @IsNotEmpty({ message: 'number_of_device of device is not empty !' })
-  @IsDefined()
-  @IsNumber()
-  number_of_device: number;
+  number_of_device?: number;
 
   @IsNotEmpty({ message: 'category_id is not empty !' })
   @IsString({ message: 'category_id must be string type' })
   @IsDefined()
   category_id: string;
+
+  regDt?: string;
+  modDt?: string;
 }
 
 export class QuerySubCategoryDto {

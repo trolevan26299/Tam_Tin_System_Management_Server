@@ -58,6 +58,12 @@ export class OrderManagementModel {
   @IsString()
   @prop()
   note?: string;
+
+  @prop()
+  regDt?: string;
+
+  @prop()
+  modDt?: string;
 }
 
 export const OrderManagementProvider = getProviderByTypegooseClass(

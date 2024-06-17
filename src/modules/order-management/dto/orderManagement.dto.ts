@@ -60,6 +60,9 @@ export class OrderMngDto {
   @IsString({ message: 'note must be string type' })
   @IsDefined()
   note?: string;
+
+  regDt?: string;
+  modDt?: string;
 }
 
 export class QueryOrderDto {

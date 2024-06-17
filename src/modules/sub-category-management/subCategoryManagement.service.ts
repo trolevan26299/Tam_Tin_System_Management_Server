@@ -1,6 +1,7 @@
 import { MongooseModel } from '@app/interfaces/mongoose.interface';
 import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import moment from 'moment';
 import { Types } from 'mongoose';
 import {
   DetailSubCategoryDto,
@@ -21,7 +22,11 @@ export class SubCategoryManagerService {
     body: SubCategoryDto,
   ): Promise<SubCategoryManagementModel> {
     try {
-      const newSubCategory = new this.subCategoryManagementModel(body);
+      const newBody = {
+        ...body,
+        regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      };
+      const newSubCategory = new this.subCategoryManagementModel(newBody);
       return newSubCategory.save();
     } catch (error) {
       throw new HttpException(
@@ -58,7 +63,10 @@ export class SubCategoryManagerService {
     body: SubCategoryDto,
   ): Promise<SubCategoryManagementModel> {
     try {
-      const subCategoryUpdate = { ...body };
+      const subCategoryUpdate = {
+        ...body,
+        modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      };
       const objectId = new Types.ObjectId(id);
 
       const updateSubCategory =
@@ -95,9 +103,30 @@ export class SubCategoryManagerService {
       }
 
       const dataRes = await this.subCategoryManagementModel
-        .find(filter)
-        .limit(items_per_page)
-        .skip(skip)
+        .aggregate([
+          { $match: filter },
+          { $sort: { regDt: -1 } },
+          { $skip: skip },
+          { $limit: items_per_page },
+          {
+            $lookup: {
+              from: 'devices',
+              localField: '_id',
+              foreignField: 'sub_category_id',
+              as: 'devices',
+            },
+          },
+          {
+            $addFields: {
+              number_of_device: { $size: '$devices' },
+            },
+          },
+          {
+            $project: {
+              devices: 0,
+            },
+          },
+        ])
         .exec();
 
       const totalCount =

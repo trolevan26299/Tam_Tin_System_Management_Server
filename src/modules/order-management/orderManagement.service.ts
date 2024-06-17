@@ -1,7 +1,10 @@
 import { MongooseModel } from '@app/interfaces/mongoose.interface';
 import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import moment from 'moment';
 import { Types } from 'mongoose';
+import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
+import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
 import {
   ItemDto,
   ListOrderDto,
@@ -9,8 +12,6 @@ import {
   QueryOrderDto,
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
-import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
-import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
 
 @Injectable()
 export class OrderManagerService {
@@ -25,7 +26,10 @@ export class OrderManagerService {
 
   public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
     await this.updateDeviceInOrder(body?.items);
-    const newOrder = new this.orderManagementModel(body);
+    const newOrder = new this.orderManagementModel({
+      ...body,
+      regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    });
 
     return newOrder.save();
   }
@@ -79,6 +83,7 @@ export class OrderManagerService {
 
       const dataRes = await this.orderManagementModel
         .find(filter)
+        .sort({ regDt: -1 })
         .populate('customer')
         .populate('items.device')
         .limit(items_per_page)
@@ -144,7 +149,7 @@ export class OrderManagerService {
       {
         _id: objectId,
       },
-      body,
+      { ...body, modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss') },
       { new: true },
     );
 
