@@ -1,7 +1,7 @@
 import { CategoryManagementModel } from '@app/modules/category-management/models/categoryManagement.model';
 import { getProviderByTypegooseClass } from '@app/transformers/model.transformer';
 import { Ref, prop } from '@typegoose/typegoose';
-import { IsDefined, IsNumber, IsString } from 'class-validator';
+import { IsDefined, IsString } from 'class-validator';
 
 export class SubCategoryManagementModel {
   @IsString()
@@ -9,13 +9,17 @@ export class SubCategoryManagementModel {
   @prop({ required: true })
   name: string;
 
-  @IsNumber()
-  @IsDefined()
-  @prop({ required: true, default: 0 })
-  number_of_device: number;
-
   @prop({ ref: CategoryManagementModel, required: true })
   category_id: Ref<CategoryManagementModel>;
+
+  @prop()
+  number_of_device?: number;
+
+  @prop()
+  regDt?: string;
+
+  @prop()
+  modDt?: string;
 }
 
 export const SubCategoryManagementProvider = getProviderByTypegooseClass(
