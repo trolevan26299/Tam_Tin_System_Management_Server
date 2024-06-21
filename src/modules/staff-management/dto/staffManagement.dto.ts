@@ -25,6 +25,11 @@ export class StaffMngDto {
   @IsNumber()
   age: number;
 
+  @IsNotEmpty({ message: 'age is not empty !' })
+  @IsDefined()
+  @IsNumber()
+  exp: number;
+
   @IsNotEmpty({ message: 'salary is not empty !' })
   @IsDefined()
   @IsNumber()
@@ -32,12 +37,19 @@ export class StaffMngDto {
 
   @IsNotEmpty({ message: 'position is not empty !' })
   @IsDefined()
+  @IsString()
+  @MaxLength(255)
+  phone: string;
+
+  @IsNotEmpty({ message: 'position is not empty !' })
+  @IsDefined()
   @IsString({ message: 'position must be string type' })
   @MaxLength(255)
   position: string;
 
-  time_keeping_id?: string;
-  employee_turnover_id?: string;
+  note?: string;
+  regDt?: string;
+  modDt?: string;
 }
 
 export class QueryStaffDto {

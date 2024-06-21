@@ -47,7 +47,7 @@ export class OrderMngDto {
   @IsDefined()
   delivery: DeliveryDto;
 
-  @IsNotEmpty({ message: 'name is not empty !' })
+  @IsNotEmpty({ message: 'delivery date is not empty !' })
   @IsDefined()
   @IsString({ message: 'delivery_date must be string type' })
   delivery_date: string;
