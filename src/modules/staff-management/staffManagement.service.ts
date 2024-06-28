@@ -1,6 +1,7 @@
 import { MongooseModel } from '@app/interfaces/mongoose.interface';
 import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import moment from 'moment';
 import { Types } from 'mongoose';
 import {
   DetailStaffDto,
@@ -19,11 +20,15 @@ export class StaffManagerService {
 
   public async createStaff(body: StaffMngDto): Promise<StaffManagementModel> {
     try {
-      const newStaff = new this.staffManagementModel(body);
+      const newStaff = new this.staffManagementModel({
+        ...body,
+        regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      });
+
       return newStaff.save();
     } catch (error) {
       throw new HttpException(
-        'An error occurred while updating the category',
+        'An error occurred while updating the staff',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -34,7 +39,10 @@ export class StaffManagerService {
     body: StaffMngDto,
   ): Promise<StaffManagementModel> {
     try {
-      const staffUpdate = { ...body };
+      const staffUpdate = {
+        ...body,
+        modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+      };
 
       const objectId = new Types.ObjectId(id);
       const updatedStaff = await this.staffManagementModel.findOneAndUpdate(
@@ -84,6 +92,7 @@ export class StaffManagerService {
 
       const dataRes = await this.staffManagementModel
         .find(filter)
+        .sort({ regDt: -1 })
         .limit(items_per_page)
         .skip(skip)
         .exec();
