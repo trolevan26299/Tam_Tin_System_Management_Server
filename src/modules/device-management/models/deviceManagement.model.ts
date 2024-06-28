@@ -12,16 +12,16 @@ import {
 import { getProviderByTypegooseClass } from '../../../transformers/model.transformer';
 
 @modelOptions({ schemaOptions: { _id: false } })
-class Status {
+class Detail {
   @IsString()
   @IsDefined()
   @prop({ required: true })
   status: string;
 
-  @IsNumber()
+  @IsString()
   @IsDefined()
   @prop({ required: true })
-  quantity: number;
+  id_device: string;
 }
 
 export class DeviceManagementModel {
@@ -30,28 +30,19 @@ export class DeviceManagementModel {
   @prop({ required: true })
   name: string;
 
-  @IsString()
-  @IsDefined()
-  @prop({ required: true })
-  id_device: string;
-
   @prop({ ref: () => SubCategoryManagementModel, required: true })
   sub_category_id: Ref<SubCategoryManagementModel>;
 
   @IsNumber()
   @IsDefined()
   @prop({ required: true })
-  price: number;
-
-  @IsNumber()
-  @prop()
-  warranty?: number;
+  cost: number;
 
   @ValidateNested({ each: true })
-  @Type(() => Status)
+  @Type(() => Detail)
   @IsArray()
-  @prop({ required: true, type: () => [Status] })
-  status: Status[];
+  @prop({ required: true, type: () => [Detail] })
+  detail: Detail[];
 
   @IsString()
   @prop()

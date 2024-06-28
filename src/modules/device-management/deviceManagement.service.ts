@@ -2,12 +2,15 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import lodash from 'lodash';
 import moment from 'moment';
+import { v4 as uuidv4 } from 'uuid';
 import { Types } from 'mongoose';
 import * as APP_CONFIG from '../../app.config';
 import { MongooseModel } from '../../interfaces/mongoose.interface';
 import { InjectModel } from '../../transformers/model.transformer';
 import {
+  AddNumberDetailToDeviceDto,
   CreateUpdateDeviceDTO,
+  DetailDeviceDto,
   filterDeviceDto,
 } from './dto/deviceManagement.dto';
 import { DeviceManagementModel } from './models/deviceManagement.model';
@@ -31,21 +34,18 @@ export class DeviceManagerService {
     createDeviceDto: CreateUpdateDeviceDTO,
   ): Promise<any> {
     try {
-      const id_device = createDeviceDto;
-      const duplicateIdDevice = await this.deviceManagementModel.findOne({
-        id_device: { $regex: new RegExp(`^${id_device}$`, 'i') },
-      });
-
-      if (duplicateIdDevice) {
-        throw new HttpException(
-          'Sản phẩm này đã bị trùng Id , Vui lòng cung cấp Id khác !',
-          HttpStatus.BAD_REQUEST,
-        );
+      const details: DetailDeviceDto[] = [];
+      for (let i = 0; i < createDeviceDto.quantity; i++) {
+        details.push({
+          status: 'inventory',
+          id_device: `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`,
+        });
       }
 
       const newCreateDeviceDto = {
         ...createDeviceDto,
-        status: [...createDeviceDto.status, { status: 'sold', quantity: 0 }],
+        quantity: undefined,
+        detail: details,
         regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       };
 
@@ -68,13 +68,12 @@ export class DeviceManagerService {
       const page = hasQuery && query.page ? Number(query.page) + 1 : 1;
       const skip = (page - 1) * items_per_page;
       const keyword = query?.keyword || '';
-      const status = query?.status || 'all';
       const filter: any = {};
 
       if (keyword) {
         filter.$or = [
           { name: { $regex: keyword, $options: 'i' } },
-          { id_device: { $regex: keyword, $options: 'i' } },
+          { _id: { $regex: keyword, $options: 'i' } },
         ];
       }
 
@@ -84,23 +83,7 @@ export class DeviceManagerService {
         queryBuilder.limit(items_per_page).skip(skip);
       }
 
-      let data = await queryBuilder.sort({ regDt: -1 }).exec();
-
-      if (status === 'sold') {
-        data = data.filter((device) => {
-          const soldStatus = device.status.find(
-            (status) => status.status === 'sold',
-          );
-          return soldStatus && soldStatus.quantity > 0;
-        });
-      } else if (status === 'inventory') {
-        data = data?.filter((device) => {
-          const inventoryStatus = device.status.find(
-            (status) => status.status === 'inventory',
-          );
-          return inventoryStatus && inventoryStatus.quantity > 0;
-        });
-      }
+      const data = await queryBuilder.sort({ regDt: -1 }).exec();
 
       const totalCount =
         await this.deviceManagementModel.countDocuments(filter);
@@ -160,6 +143,34 @@ export class DeviceManagerService {
       console.error('Error updating device:', error);
       throw new HttpException(
         'An error occurred while updating the device',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  public async addNumberDetailToDevice(
+    id: string,
+    addNumberDetailToDeviceDto: AddNumberDetailToDeviceDto,
+  ): Promise<any> {
+    try {
+      const newDetails: DetailDeviceDto[] = [];
+      for (let i = 0; i < addNumberDetailToDeviceDto.quantity; i++) {
+        newDetails.push({
+          status: 'inventory',
+          id_device: `${addNumberDetailToDeviceDto.name}-${uuidv4().substring(0, 8)}`,
+        });
+      }
+
+      const objectId = new Types.ObjectId(id);
+      const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
+        { _id: objectId },
+        { $push: { detail: { $each: newDetails } } },
+        { new: true },
+      );
+      return updateDevice;
+    } catch (error) {
+      console.error('Error add detail to device:', error);
+      throw new HttpException(
+        'An error occurred while add detail to device',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -14,6 +15,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '../../guards/auth.guard';
 import { DeviceManagerService } from './deviceManagement.service';
 import {
+  AddNumberDetailToDeviceDto,
   CreateUpdateDeviceDTO,
   filterDeviceDto,
 } from './dto/deviceManagement.dto';
@@ -57,6 +59,18 @@ export class DeviceManagerController {
     @Body() updateDeviceDto: CreateUpdateDeviceDTO,
   ): Promise<DeviceManagementModel> {
     return this.deviceManagementService.updateDevice(id, updateDeviceDto);
+  }
+
+  // Thêm số lượng sản phẩm mới vào kho
+  @Patch(':id')
+  async addNumberDetailToDevice(
+    @Param('id') id: string,
+    @Body() addNumberDetailToDeviceDto: AddNumberDetailToDeviceDto,
+  ): Promise<DeviceManagementModel> {
+    return this.deviceManagementService.addNumberDetailToDevice(
+      id,
+      addNumberDetailToDeviceDto,
+    );
   }
   // API UPDATE DEVICE
   @Delete(':id')

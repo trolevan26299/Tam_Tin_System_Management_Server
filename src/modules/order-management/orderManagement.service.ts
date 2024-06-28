@@ -1,14 +1,14 @@
 import { MongooseModel } from '@app/interfaces/mongoose.interface';
 import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import moment from 'moment';
-import { Types } from 'mongoose';
+// import moment from 'moment';
+// import { Types } from 'mongoose';
 import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
 import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
 import {
-  ItemDto,
+  // ItemDto,
   ListOrderDto,
-  OrderMngDto,
+  // OrderMngDto,
   QueryOrderDto,
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
@@ -24,15 +24,15 @@ export class OrderManagerService {
     private readonly customerManagementModel: MongooseModel<CustomerManagementModel>,
   ) {}
 
-  public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
-    await this.updateDeviceInOrder(body?.items);
-    const newOrder = new this.orderManagementModel({
-      ...body,
-      regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    });
+  // public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
+  //   await this.updateDeviceInOrder(body?.items);
+  //   const newOrder = new this.orderManagementModel({
+  //     ...body,
+  //     regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+  //   });
 
-    return newOrder.save();
-  }
+  //   return newOrder.save();
+  // }
 
   public async getAllOrder(query: QueryOrderDto): Promise<ListOrderDto> {
     try {
@@ -131,191 +131,191 @@ export class OrderManagerService {
     }
   }
 
-  public async updateOrderById(
-    id: string,
-    body: OrderMngDto,
-  ): Promise<OrderManagementModel> {
-    const objectId = new Types.ObjectId(id);
-    const orderById = await this.getOrderById(id);
+  // public async updateOrderById(
+  //   id: string,
+  //   body: OrderMngDto,
+  // ): Promise<OrderManagementModel> {
+  //   const objectId = new Types.ObjectId(id);
+  //   const orderById = await this.getOrderById(id);
 
-    await this.updateDeviceInOrder(
-      body?.items,
-      orderById?.items?.map((x) => ({
-        device: x.device?.id as string,
-        quantity: x?.quantity as number,
-      })) as ItemDto[],
-    );
-    const newOrder = await this.orderManagementModel.findOneAndUpdate(
-      {
-        _id: objectId,
-      },
-      { ...body, modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss') },
-      { new: true },
-    );
+  //   await this.updateDeviceInOrder(
+  //     body?.items,
+  //     orderById?.items?.map((x) => ({
+  //       device: x.device?.id as string,
+  //       quantity: x?.quantity as number,
+  //     })) as ItemDto[],
+  //   );
+  //   const newOrder = await this.orderManagementModel.findOneAndUpdate(
+  //     {
+  //       _id: objectId,
+  //     },
+  //     { ...body, modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss') },
+  //     { new: true },
+  //   );
 
-    return newOrder as OrderManagementModel;
-  }
+  //   return newOrder as OrderManagementModel;
+  // }
 
-  public async deleteOrderById(id: string): Promise<OrderManagementModel> {
-    try {
-      const objectId = new Types.ObjectId(id);
-      const deleteOrder = await this.orderManagementModel.findOneAndDelete({
-        _id: objectId,
-      });
+  // public async deleteOrderById(id: string): Promise<OrderManagementModel> {
+  //   try {
+  //     const objectId = new Types.ObjectId(id);
+  //     const deleteOrder = await this.orderManagementModel.findOneAndDelete({
+  //       _id: objectId,
+  //     });
 
-      await this.updateDeviceInOrder(
-        [],
-        deleteOrder?.items?.map((x) => ({
-          device: x?.device?.toString(),
-          quantity: x?.quantity as number,
-        })) as ItemDto[],
-      );
+  //     await this.updateDeviceInOrder(
+  //       [],
+  //       deleteOrder?.items?.map((x) => ({
+  //         device: x?.device?.toString(),
+  //         quantity: x?.quantity as number,
+  //       })) as ItemDto[],
+  //     );
 
-      return deleteOrder as OrderManagementModel;
-    } catch (error) {
-      throw new HttpException(
-        'An error occurred while delete the order',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
+  //     return deleteOrder as OrderManagementModel;
+  //   } catch (error) {
+  //     throw new HttpException(
+  //       'An error occurred while delete the order',
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
 
-  public async updateDeviceInOrder(
-    newItems?: ItemDto[],
-    oldItems?: ItemDto[],
-  ): Promise<any> {
-    let updateSuccess;
+  // public async updateDeviceInOrder(
+  //   newItems?: ItemDto[],
+  //   oldItems?: ItemDto[],
+  // ): Promise<any> {
+  //   let updateSuccess;
 
-    const updateDeviceStatus = async (
-      deviceId: string,
-      quantity: number,
-      isNewItem: boolean,
-    ) => {
-      const device = await this.deviceManagementModel.findById(deviceId);
-      if (!device) {
-        console.error(`Device with ID ${deviceId} not found.`);
-        return false;
-      }
+  //   const updateDeviceStatus = async (
+  //     deviceId: string,
+  //     quantity: number,
+  //     isNewItem: boolean,
+  //   ) => {
+  //     const device = await this.deviceManagementModel.findById(deviceId);
+  //     if (!device) {
+  //       console.error(`Device with ID ${deviceId} not found.`);
+  //       return false;
+  //     }
 
-      const updatedStatus = device?.status?.map((statusItem) => {
-        if (statusItem?.status === 'inventory') {
-          return {
-            status: statusItem?.status,
-            quantity: isNewItem
-              ? statusItem.quantity - quantity
-              : statusItem.quantity + quantity,
-          };
-        } else if (statusItem?.status === 'sold') {
-          return {
-            status: statusItem?.status,
-            quantity: isNewItem
-              ? statusItem.quantity + quantity
-              : statusItem.quantity - quantity,
-          };
-        }
-        return statusItem;
-      });
+  //     const updatedStatus = device?.status?.map((statusItem) => {
+  //       if (statusItem?.status === 'inventory') {
+  //         return {
+  //           status: statusItem?.status,
+  //           quantity: isNewItem
+  //             ? statusItem.quantity - quantity
+  //             : statusItem.quantity + quantity,
+  //         };
+  //       } else if (statusItem?.status === 'sold') {
+  //         return {
+  //           status: statusItem?.status,
+  //           quantity: isNewItem
+  //             ? statusItem.quantity + quantity
+  //             : statusItem.quantity - quantity,
+  //         };
+  //       }
+  //       return statusItem;
+  //     });
 
-      const updatedDeviceData = { status: updatedStatus };
+  //     const updatedDeviceData = { status: updatedStatus };
 
-      const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
-        { _id: device._id },
-        { $set: updatedDeviceData },
-        { new: true },
-      );
+  //     const updateDevice = await this.deviceManagementModel.findOneAndUpdate(
+  //       { _id: device._id },
+  //       { $set: updatedDeviceData },
+  //       { new: true },
+  //     );
 
-      return !!updateDevice;
-    };
+  //     return !!updateDevice;
+  //   };
 
-    const checkOrderQuantity = async (
-      deviceId: string,
-      orderQuantity: number,
-    ) => {
-      const device = await this.deviceManagementModel.findById(deviceId);
-      const inventoryStatus = device?.status?.find(
-        (statusItem) => statusItem?.status === 'inventory',
-      );
-      if (orderQuantity > Number(inventoryStatus?.quantity)) {
-        throw new HttpException(
-          `Order quantity (${orderQuantity}) exceeds inventory quantity (${inventoryStatus?.quantity}) of the device.`,
-          HttpStatus.BAD_REQUEST,
-        );
-      }
-      return true;
-    };
+  //   const checkOrderQuantity = async (
+  //     deviceId: string,
+  //     orderQuantity: number,
+  //   ) => {
+  //     const device = await this.deviceManagementModel.findById(deviceId);
+  //     const inventoryStatus = device?.status?.find(
+  //       (statusItem) => statusItem?.status === 'inventory',
+  //     );
+  //     if (orderQuantity > Number(inventoryStatus?.quantity)) {
+  //       throw new HttpException(
+  //         `Order quantity (${orderQuantity}) exceeds inventory quantity (${inventoryStatus?.quantity}) of the device.`,
+  //         HttpStatus.BAD_REQUEST,
+  //       );
+  //     }
+  //     return true;
+  //   };
 
-    if (oldItems) {
-      // update order and device
-      const allDeviceIds = new Set([
-        ...oldItems.map((item) => item.device),
-        ...(newItems?.map((item) => item.device) || []),
-      ]);
+  //   if (oldItems) {
+  //     // update order and device
+  //     const allDeviceIds = new Set([
+  //       ...oldItems.map((item) => item.device),
+  //       ...(newItems?.map((item) => item.device) || []),
+  //     ]);
 
-      for (const deviceId of allDeviceIds) {
-        const oldItem = oldItems.find((item) => item.device === deviceId);
-        const newItem = newItems?.find((item) => item.device === deviceId);
+  //     for (const deviceId of allDeviceIds) {
+  //       const oldItem = oldItems.find((item) => item.device === deviceId);
+  //       const newItem = newItems?.find((item) => item.device === deviceId);
 
-        if (newItem?.device === oldItem?.device) {
-          if (newItem?.quantity !== oldItem?.quantity) {
-            const quantityDifference =
-              Number(newItem?.quantity) - Number(oldItem?.quantity);
-            const checkQuantityWhenOrder = await checkOrderQuantity(
-              deviceId,
-              Number(newItem?.quantity),
-            );
-            if (checkQuantityWhenOrder) {
-              const success = await updateDeviceStatus(
-                deviceId,
-                Math.abs(quantityDifference),
-                quantityDifference > 0,
-              );
-              if (success) updateSuccess = true;
-            }
-          } else {
-            updateSuccess = true;
-          }
-        } else if (!newItem) {
-          const success = await updateDeviceStatus(
-            deviceId,
-            Number(oldItem?.quantity),
-            false,
-          );
-          if (success) updateSuccess = true;
-        } else if (!oldItem) {
-          const checkQuantityWhenOrder = await checkOrderQuantity(
-            deviceId,
-            Number(newItem?.quantity),
-          );
-          if (checkQuantityWhenOrder) {
-            const success = await updateDeviceStatus(
-              deviceId,
-              Number(newItem?.quantity),
-              true,
-            );
-            if (success) updateSuccess = true;
-          }
-        }
-      }
-    } else {
-      // create order and update device
-      for (const item of newItems as ItemDto[]) {
-        if (item?.quantity > 0) {
-          const checkQuantityWhenOrder = await checkOrderQuantity(
-            item?.device,
-            Number(item?.quantity),
-          );
-          if (checkQuantityWhenOrder) {
-            const success = await updateDeviceStatus(
-              item?.device,
-              item?.quantity,
-              true,
-            );
-            if (success) updateSuccess = true;
-          }
-        }
-      }
-    }
+  //       if (newItem?.device === oldItem?.device) {
+  //         if (newItem?.quantity !== oldItem?.quantity) {
+  //           const quantityDifference =
+  //             Number(newItem?.quantity) - Number(oldItem?.quantity);
+  //           const checkQuantityWhenOrder = await checkOrderQuantity(
+  //             deviceId,
+  //             Number(newItem?.quantity),
+  //           );
+  //           if (checkQuantityWhenOrder) {
+  //             const success = await updateDeviceStatus(
+  //               deviceId,
+  //               Math.abs(quantityDifference),
+  //               quantityDifference > 0,
+  //             );
+  //             if (success) updateSuccess = true;
+  //           }
+  //         } else {
+  //           updateSuccess = true;
+  //         }
+  //       } else if (!newItem) {
+  //         const success = await updateDeviceStatus(
+  //           deviceId,
+  //           Number(oldItem?.quantity),
+  //           false,
+  //         );
+  //         if (success) updateSuccess = true;
+  //       } else if (!oldItem) {
+  //         const checkQuantityWhenOrder = await checkOrderQuantity(
+  //           deviceId,
+  //           Number(newItem?.quantity),
+  //         );
+  //         if (checkQuantityWhenOrder) {
+  //           const success = await updateDeviceStatus(
+  //             deviceId,
+  //             Number(newItem?.quantity),
+  //             true,
+  //           );
+  //           if (success) updateSuccess = true;
+  //         }
+  //       }
+  //     }
+  //   } else {
+  //     // create order and update device
+  //     for (const item of newItems as ItemDto[]) {
+  //       if (item?.quantity > 0) {
+  //         const checkQuantityWhenOrder = await checkOrderQuantity(
+  //           item?.device,
+  //           Number(item?.quantity),
+  //         );
+  //         if (checkQuantityWhenOrder) {
+  //           const success = await updateDeviceStatus(
+  //             item?.device,
+  //             item?.quantity,
+  //             true,
+  //           );
+  //           if (success) updateSuccess = true;
+  //         }
+  //       }
+  //     }
+  //   }
 
-    return updateSuccess;
-  }
+  //   return updateSuccess;
+  // }
 }
