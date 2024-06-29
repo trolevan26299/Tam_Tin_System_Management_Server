@@ -30,9 +30,7 @@ export class DeviceManagerController {
 
   // API CREATE DEVICE
   @Post()
-  async create(
-    @Body() createDeviceDto: CreateUpdateDeviceDTO,
-  ): Promise<DeviceManagementModel> {
+  async create(@Body() createDeviceDto: CreateUpdateDeviceDTO): Promise<any> {
     return this.deviceManagementService.createDevice(createDeviceDto);
   }
 

@@ -23,7 +23,7 @@ export class CreateUpdateDeviceDTO {
   sub_category_id: string;
 
   @IsNumber()
-  @IsNotEmpty({ message: 'price is not empty !' })
+  @IsNotEmpty({ message: 'cost is not empty !' })
   @IsDefined()
   cost: number;
 

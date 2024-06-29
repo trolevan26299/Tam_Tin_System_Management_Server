@@ -36,9 +36,11 @@ export class DeviceManagerService {
     try {
       const details: DetailDeviceDto[] = [];
       for (let i = 0; i < createDeviceDto.quantity; i++) {
+        const id_device = `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`;
+        console.log('Generated id_device:', id_device);
         details.push({
           status: 'inventory',
-          id_device: `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`,
+          id_device,
         });
       }
 
@@ -50,8 +52,13 @@ export class DeviceManagerService {
       };
 
       const newDevice = new this.deviceManagementModel(newCreateDeviceDto);
-      return newDevice.save();
+      if (!newDevice.detail.every((d) => d.id_device)) {
+        throw new Error('One or more id_device values are null or undefined');
+      }
+
+      return await newDevice.save();
     } catch (error) {
+      console.log('error:', error);
       throw new HttpException(
         'An error occurred while creating the device',
         HttpStatus.INTERNAL_SERVER_ERROR,
