@@ -32,12 +32,12 @@ export class DeviceManagerService {
   //CREATE DEVICE
   public async createDevice(
     createDeviceDto: CreateUpdateDeviceDTO,
-  ): Promise<any> {
+  ): Promise<DeviceManagementModel> {
     try {
       const details: DetailDeviceDto[] = [];
       for (let i = 0; i < createDeviceDto.quantity; i++) {
-        const id_device = `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`;
-        console.log('Generated id_device:', id_device);
+        const id_device =
+          await `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`;
         details.push({
           status: 'inventory',
           id_device,
@@ -45,20 +45,18 @@ export class DeviceManagerService {
       }
 
       const newCreateDeviceDto = {
-        ...createDeviceDto,
-        quantity: undefined,
+        name: createDeviceDto.name,
+        sub_category_id: createDeviceDto.sub_category_id,
+        cost: createDeviceDto.cost,
+        note: createDeviceDto.note,
         detail: details,
         regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
       };
 
       const newDevice = new this.deviceManagementModel(newCreateDeviceDto);
-      if (!newDevice.detail.every((d) => d.id_device)) {
-        throw new Error('One or more id_device values are null or undefined');
-      }
 
-      return await newDevice.save();
+      return newDevice.save();
     } catch (error) {
-      console.log('error:', error);
       throw new HttpException(
         'An error occurred while creating the device',
         HttpStatus.INTERNAL_SERVER_ERROR,
