@@ -1,8 +1,6 @@
 import { MongooseModel } from '@app/interfaces/mongoose.interface';
 import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-// import moment from 'moment';
-// import { Types } from 'mongoose';
 import moment from 'moment';
 import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
 import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
@@ -15,7 +13,6 @@ import {
   QueryOrderDto,
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
-import { DetailDeviceDto } from '../device-management/dto/deviceManagement.dto';
 
 @Injectable()
 export class OrderManagerService {
@@ -28,14 +25,14 @@ export class OrderManagerService {
     private readonly customerManagementModel: MongooseModel<CustomerManagementModel>,
   ) {}
 
-  public async createOrder(body: OrderMngDto): Promise<any> {
+  public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
     await this.updateDeviceInOrder(body.items);
-    // const newOrder = new this.orderManagementModel({
-    //   ...body,
-    //   regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-    // });
+    const newOrder = new this.orderManagementModel({
+      ...body,
+      regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    });
 
-    // return newOrder.save();
+    return newOrder.save();
   }
 
   public async updateOrderById(id: string, body: OrderMngDto): Promise<any> {
@@ -44,8 +41,8 @@ export class OrderManagerService {
     await this.updateDeviceInOrder(
       body?.items,
       orderById?.items?.map((x) => ({
-        device: x.device?.id as string,
-        quantity: x?.quantity as number,
+        device: x.device.id as string,
+        details: x.details,
       })) as ItemDto[],
     );
   }
@@ -341,15 +338,36 @@ export class OrderManagerService {
   ): Promise<any> {
     if (oldItems) {
       // update order and device
-
       const allDeviceIds = new Set([
         ...oldItems.map((item) => item.device),
         ...(newItems?.map((item) => item.device) || []),
       ]);
+
+      console.log('🚀 ~ allDeviceIds:', allDeviceIds);
+      console.log('🚀 ~ newItems:', newItems);
+      console.log('🚀 ~ oldItems:', oldItems);
     } else {
       for (const item of newItems as ItemDto[]) {
         if ((item.details as string[])?.length > 0) {
-          //
+          const findDeviceById = await this.deviceManagementModel.findById(
+            item.device,
+          );
+
+          const updatedDetail = findDeviceById?.detail.map((x) => {
+            if (item.details?.includes(x.id_device)) {
+              return { status: 'sold', id_device: x.id_device };
+            } else {
+              return x;
+            }
+          });
+
+          const updateDevice =
+            await this.deviceManagementModel.findOneAndUpdate(
+              { _id: findDeviceById?._id },
+              { $set: { detail: updatedDetail } },
+              { new: true },
+            );
+          return updateDevice;
         }
       }
     }

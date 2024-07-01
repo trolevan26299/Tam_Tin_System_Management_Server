@@ -12,7 +12,7 @@ import {
 import { getProviderByTypegooseClass } from '../../../transformers/model.transformer';
 
 @modelOptions({ schemaOptions: { _id: false } })
-class Detail {
+export class Detail {
   @IsString()
   @IsDefined()
   @prop({ required: true })
