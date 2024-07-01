@@ -1,26 +1,27 @@
-// import { Roles } from '@app/decorators/roles.decorator';
+import { Roles } from '@app/decorators/roles.decorator';
 import { AuthGuard } from '@app/guards/auth.guard';
-// import { RolesGuard } from '@app/guards/roles.guard';
+import { RolesGuard } from '@app/guards/roles.guard';
 import {
-  // Body,
+  Body,
   Controller,
   // Delete,
   Get,
   Param,
-  // Post,
-  // Put,
+  Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   ListOrderDto,
+  OrderMngDto,
   // OrderMngDto,
   QueryOrderDto,
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
 import { OrderManagerService } from './orderManagement.service';
-// import { USER_TYPE } from '@app/constants/account';
+import { USER_TYPE } from '@app/constants/account';
 
 @ApiBearerAuth()
 @ApiTags('OrderManagement')
@@ -29,10 +30,10 @@ import { OrderManagerService } from './orderManagement.service';
 export class OrderManagementController {
   constructor(private readonly orderManagementService: OrderManagerService) {}
 
-  // @Post()
-  // async create(@Body() body: OrderMngDto): Promise<OrderManagementModel> {
-  //   return await this.orderManagementService.createOrder(body);
-  // }
+  @Post()
+  async create(@Body() body: OrderMngDto): Promise<OrderManagementModel> {
+    return await this.orderManagementService.createOrder(body);
+  }
 
   @Get('list')
   async getAllOrder(@Query() query: QueryOrderDto): Promise<ListOrderDto> {
@@ -44,15 +45,15 @@ export class OrderManagementController {
     return await this.orderManagementService.getOrderById(id);
   }
 
-  // @Roles(USER_TYPE.SUPER_ADMIN)
-  // @UseGuards(RolesGuard)
-  // @Put(':id')
-  // async updateOrderById(
-  //   @Param('id') id: string,
-  //   @Body() body: OrderMngDto,
-  // ): Promise<OrderManagementModel> {
-  //   return await this.orderManagementService.updateOrderById(id, body);
-  // }
+  @Roles(USER_TYPE.SUPER_ADMIN)
+  @UseGuards(RolesGuard)
+  @Put(':id')
+  async updateOrderById(
+    @Param('id') id: string,
+    @Body() body: OrderMngDto,
+  ): Promise<OrderManagementModel> {
+    return await this.orderManagementService.updateOrderById(id, body);
+  }
 
   // @Roles(USER_TYPE.SUPER_ADMIN)
   // @UseGuards(RolesGuard)

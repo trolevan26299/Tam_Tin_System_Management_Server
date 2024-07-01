@@ -3,15 +3,19 @@ import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 // import moment from 'moment';
 // import { Types } from 'mongoose';
+import moment from 'moment';
 import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
 import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
 import {
+  ItemDto,
   // ItemDto,
   ListOrderDto,
+  OrderMngDto,
   // OrderMngDto,
   QueryOrderDto,
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
+import { DetailDeviceDto } from '../device-management/dto/deviceManagement.dto';
 
 @Injectable()
 export class OrderManagerService {
@@ -24,15 +28,27 @@ export class OrderManagerService {
     private readonly customerManagementModel: MongooseModel<CustomerManagementModel>,
   ) {}
 
-  // public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
-  //   await this.updateDeviceInOrder(body?.items);
-  //   const newOrder = new this.orderManagementModel({
-  //     ...body,
-  //     regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-  //   });
+  public async createOrder(body: OrderMngDto): Promise<any> {
+    await this.updateDeviceInOrder(body.items);
+    // const newOrder = new this.orderManagementModel({
+    //   ...body,
+    //   regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    // });
 
-  //   return newOrder.save();
-  // }
+    // return newOrder.save();
+  }
+
+  public async updateOrderById(id: string, body: OrderMngDto): Promise<any> {
+    const orderById = await this.getOrderById(id);
+
+    await this.updateDeviceInOrder(
+      body?.items,
+      orderById?.items?.map((x) => ({
+        device: x.device?.id as string,
+        quantity: x?.quantity as number,
+      })) as ItemDto[],
+    );
+  }
 
   public async getAllOrder(query: QueryOrderDto): Promise<ListOrderDto> {
     try {
@@ -131,6 +147,30 @@ export class OrderManagerService {
     }
   }
 
+  // public async deleteOrderById(id: string): Promise<OrderManagementModel> {
+  //   try {
+  //     const objectId = new Types.ObjectId(id);
+  //     const deleteOrder = await this.orderManagementModel.findOneAndDelete({
+  //       _id: objectId,
+  //     });
+
+  //     await this.updateDeviceInOrder(
+  //       [],
+  //       deleteOrder?.items?.map((x) => ({
+  //         device: x?.device?.toString(),
+  //         quantity: x?.quantity as number,
+  //       })) as ItemDto[],
+  //     );
+
+  //     return deleteOrder as OrderManagementModel;
+  //   } catch (error) {
+  //     throw new HttpException(
+  //       'An error occurred while delete the order',
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
+
   // public async updateOrderById(
   //   id: string,
   //   body: OrderMngDto,
@@ -154,30 +194,6 @@ export class OrderManagerService {
   //   );
 
   //   return newOrder as OrderManagementModel;
-  // }
-
-  // public async deleteOrderById(id: string): Promise<OrderManagementModel> {
-  //   try {
-  //     const objectId = new Types.ObjectId(id);
-  //     const deleteOrder = await this.orderManagementModel.findOneAndDelete({
-  //       _id: objectId,
-  //     });
-
-  //     await this.updateDeviceInOrder(
-  //       [],
-  //       deleteOrder?.items?.map((x) => ({
-  //         device: x?.device?.toString(),
-  //         quantity: x?.quantity as number,
-  //       })) as ItemDto[],
-  //     );
-
-  //     return deleteOrder as OrderManagementModel;
-  //   } catch (error) {
-  //     throw new HttpException(
-  //       'An error occurred while delete the order',
-  //       HttpStatus.INTERNAL_SERVER_ERROR,
-  //     );
-  //   }
   // }
 
   // public async updateDeviceInOrder(
@@ -318,4 +334,24 @@ export class OrderManagerService {
 
   //   return updateSuccess;
   // }
+
+  public async updateDeviceInOrder(
+    newItems?: ItemDto[],
+    oldItems?: ItemDto[],
+  ): Promise<any> {
+    if (oldItems) {
+      // update order and device
+
+      const allDeviceIds = new Set([
+        ...oldItems.map((item) => item.device),
+        ...(newItems?.map((item) => item.device) || []),
+      ]);
+    } else {
+      for (const item of newItems as ItemDto[]) {
+        if ((item.details as string[])?.length > 0) {
+          //
+        }
+      }
+    }
+  }
 }

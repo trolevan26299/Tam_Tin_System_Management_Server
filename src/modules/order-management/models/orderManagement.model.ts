@@ -12,32 +12,25 @@ import {
 } from 'class-validator';
 
 @modelOptions({ schemaOptions: { _id: false } })
-class Delivery {
-  @IsString()
-  @IsDefined()
-  @prop({ required: true })
-  shipBy: string;
-}
-
-@modelOptions({ schemaOptions: { _id: false } })
 class Item {
   @prop({ ref: () => DeviceManagementModel, required: true })
   device: Ref<DeviceManagementModel>;
 
-  @IsNumber()
   @IsDefined()
+  @IsArray()
+  @IsString({ each: true })
   @prop({ required: true })
-  quantity: number;
+  details: string[];
 }
 
 export class OrderManagementModel {
   @prop({ required: true, ref: CustomerManagementModel })
   customer: Ref<CustomerManagementModel>;
 
-  @ValidateNested()
-  @Type(() => Delivery)
-  @prop({ required: true, type: () => Delivery })
-  delivery: Delivery;
+  @IsString()
+  @IsDefined()
+  @prop({ required: true })
+  shipBy: string;
 
   @ValidateNested({ each: true })
   @Type(() => Item)

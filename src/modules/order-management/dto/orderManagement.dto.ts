@@ -3,6 +3,7 @@ import { Type } from 'class-transformer';
 import {
   IsArray,
   IsDefined,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsString,
@@ -15,17 +16,11 @@ export class ItemDto {
   @IsDefined()
   device: string;
 
-  @IsNumber()
-  @IsNotEmpty({ message: 'price is not empty !' })
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ message: 'Device array must not be empty' })
   @IsDefined()
-  quantity: number;
-}
-
-export class DeliveryDto {
-  @IsNotEmpty({ message: 'shipBy is not empty !' })
-  @IsString()
-  @IsDefined()
-  shipBy: string;
+  details?: string[];
 }
 
 export class OrderMngDto {
@@ -41,11 +36,10 @@ export class OrderMngDto {
   @IsDefined()
   customer: string;
 
-  @IsNotEmpty({ message: 'delivery is not empty !' })
-  @ValidateNested()
-  @Type(() => DeliveryDto)
+  @IsNotEmpty({ message: 'ship by is not empty !' })
+  @IsString()
   @IsDefined()
-  delivery: DeliveryDto;
+  shipBy: string;
 
   @IsNotEmpty({ message: 'delivery date is not empty !' })
   @IsDefined()
