@@ -162,18 +162,21 @@ export class OrderManagerService {
   public async deleteOrderById(id: string): Promise<boolean> {
     try {
       const objectId = new Types.ObjectId(id);
-      const deleteOrder = await this.orderManagementModel.findOneAndDelete({
-        _id: objectId,
-      });
-
-      const oldItems = deleteOrder?.items.map((x) => ({
+      const orderById = await this.getOrderById(id);
+      const oldItems = orderById?.items.map((x) => ({
         device: x.device.id as string,
         details: x.details,
       })) as ItemDto[];
 
-      const updateDevice = await this.updateDeviceInOrder(oldItems);
+      const updateResult = await this.updateDeviceInOrder([], oldItems, true);
 
-      return updateDevice;
+      if (updateResult) {
+        await this.orderManagementModel.findOneAndDelete({
+          _id: objectId,
+        });
+        return true;
+      }
+      return false;
     } catch (error) {
       throw new HttpException(
         'An error occurred while delete the order',
