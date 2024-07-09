@@ -21,6 +21,10 @@ class Item {
   @IsString({ each: true })
   @prop({ required: true })
   details: string[];
+
+  @IsNumber()
+  @prop({ required: true })
+  price: number;
 }
 
 export class OrderManagementModel {
@@ -47,6 +51,8 @@ export class OrderManagementModel {
   @IsDefined()
   @prop({ required: true })
   totalAmount: number;
+
+  priceSaleOff?: number;
 
   @IsString()
   @prop()

@@ -20,6 +20,10 @@ export class ItemDto {
   @IsNotEmpty({ message: 'Device array must not be empty' })
   @IsDefined()
   details?: string[];
+
+  @IsNumber()
+  @IsNotEmpty({ message: 'Price must not be empty' })
+  price: number;
 }
 
 export class OrderMngDto {
@@ -49,6 +53,11 @@ export class OrderMngDto {
   @IsDefined()
   @IsNumber()
   totalAmount: number;
+
+  @IsNotEmpty({ message: 'total amount is not empty !' })
+  @IsDefined()
+  @IsNumber()
+  priceSaleOff: number;
 
   @IsString({ message: 'note must be string type' })
   @IsDefined()
