@@ -54,10 +54,8 @@ export class OrderMngDto {
   @IsNumber()
   totalAmount: number;
 
-  @IsNotEmpty({ message: 'total amount is not empty !' })
-  @IsDefined()
   @IsNumber()
-  priceSaleOff: number;
+  priceSaleOff?: number;
 
   @IsString({ message: 'note must be string type' })
   @IsDefined()
