@@ -76,10 +76,12 @@ export class DeviceManagerService {
       const filter: any = {};
 
       if (keyword) {
-        filter.$or = [
-          { name: { $regex: keyword, $options: 'i' } },
-          { _id: { $regex: keyword, $options: 'i' } },
-        ];
+        const orderIdRegex = /^[0-9a-fA-F]{24}$/;
+        if (orderIdRegex.test(keyword)) {
+          filter['_id'] = keyword;
+        } else {
+          filter.$or = [{ name: { $regex: keyword, $options: 'i' } }];
+        }
       }
 
       const queryBuilder = this.deviceManagementModel.find(filter);
