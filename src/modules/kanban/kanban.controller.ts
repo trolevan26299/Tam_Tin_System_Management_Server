@@ -1,5 +1,14 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { KanbanService } from './kanban.service';
+import { UpdateColumnDto } from './dto/column.dto';
 
 @Controller('kanban')
 export class KanbanController {
@@ -21,22 +30,21 @@ export class KanbanController {
   async addTask(@Body() taskData: any) {
     return this.kanbanService.addTask(taskData);
   }
-  // @Put('column/:columnId')
-  // async updateColumn(
-  //   @Param('columnId') columnId: string,
-  //   @Body() updateColumnDto: UpdateColumnDto,
-  // ): Promise<IKanbanColumn> {
-  //   return this.kanbanService.updateColumn(columnId, updateColumnDto);
-  // }
+  @Put('column/:columnId')
+  async updateColumn(
+    @Param('columnId') columnId: string,
+    @Body() updateColumnDto: UpdateColumnDto,
+  ) {
+    return this.kanbanService.updateColumn(columnId, updateColumnDto);
+  }
 
+  @Delete('column/:columnId')
+  async deleteColumn(@Param('columnId') columnId: string): Promise<void> {
+    return this.kanbanService.deleteColumn(columnId);
+  }
   // @Post('column/order')
   // async moveColumn(@Body() newOrdered: string[]): Promise<IKanban> {
   //   return this.kanbanService.moveColumn(newOrdered);
-  // }
-
-  // @Delete('column/:columnId')
-  // async deleteColumn(@Param('columnId') columnId: string): Promise<void> {
-  //   return this.kanbanService.deleteColumn(columnId);
   // }
 
   // @Post('task')

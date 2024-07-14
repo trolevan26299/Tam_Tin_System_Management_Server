@@ -12,12 +12,19 @@ class Column {
   @prop({ required: true })
   taskIds: string[];
 }
+class Task {
+  @prop({ required: true })
+  task_id: string;
+
+  @prop({ required: true })
+  detail: any;
+}
 export class BoardKanbanModel {
   @prop({ required: true, type: () => [Column] })
   columns: Column[];
 
-  @prop({ required: true, type: () => Object })
-  tasks: Record<string, any[]>;
+  @prop({ required: true, type: () => [Task] })
+  tasks: any[];
 
   @prop({ required: true, type: () => [String] })
   ordered: string[];

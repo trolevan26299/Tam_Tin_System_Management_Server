@@ -2,13 +2,14 @@
 
 export interface IKanban {
   columns: IKanbanColumn[];
-  tasks: Record<string, IKanbanTask[]>;
+  tasks: any[];
   ordered: string[];
 }
 
 export interface IKanbanColumn {
   id: string;
   name: string;
+  taskIds: string[];
 }
 
 export interface IKanbanTask {

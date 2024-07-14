@@ -1,8 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '../../transformers/model.transformer';
-import { IKanban, IKanbanTask } from '../../types/kanban';
+import { IKanban, IKanbanColumn } from '../../types/kanban';
 import { BoardKanbanModel } from './models/board.model';
+import { UpdateColumnDto } from './dto/column.dto';
 
 @Injectable()
 export class KanbanService {
@@ -23,27 +24,9 @@ export class KanbanService {
       taskIds: column.taskIds,
     }));
 
-    const tasks: Record<string, IKanbanTask[]> = {};
-    for (const columnId in board.tasks) {
-      tasks[columnId] = board.tasks[columnId].map((task) => ({
-        id: task.id,
-        name: task.name,
-        reporter: task.reporter,
-        labels: task.labels,
-        comments: task.comments,
-        assignee: task.assignee,
-        description: task.description,
-        due: task.due,
-        priority: task.priority,
-        attachments: task.attachments,
-        status: task.status,
-        columnId: task.columnId,
-      }));
-    }
-
     const result: IKanban = {
       columns: columnsWithTasks,
-      tasks: tasks,
+      tasks: board.tasks,
       ordered: board.ordered,
     };
 
@@ -68,69 +51,83 @@ export class KanbanService {
       throw new Error('Board not found');
     }
 
-    const column = board.columns.find((col) => col.id === taskData.columnId);
+    const column = await board.columns.find(
+      (col) => col.id === taskData.columnId,
+    );
     if (!column) {
       throw new Error('Column not found');
     }
 
-    column.taskIds.push(taskData.id);
-
-    if (!board.tasks[taskData.columnId]) {
-      board.tasks[taskData.columnId] = [];
-    }
-
-    const task = { ...taskData };
-    delete task.columnId;
-    console.log('task:', task);
-    console.log('ádsadasfa', board.tasks[taskData.columnId]);
-    board.tasks[taskData.columnId].push(task);
+    await column.taskIds.push(taskData.id);
+    await board.tasks.push({ task_id: taskData.id, detail: taskData });
 
     return board.save();
   }
 
-  // async createColumn(createColumnDto: CreateColumnDto): Promise<IKanbanColumn> {
-  //   const newColumn = new this.columnModel(createColumnDto);
-  //   await newColumn.save();
+  async updateColumn(
+    columnId: string,
+    updateColumnDto: UpdateColumnDto,
+  ): Promise<IKanbanColumn> {
+    const board = await this.boardModel.findOne().exec();
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
 
-  //   const board = await this.boardModel.findOne();
-  //   if (!board) {
-  //     throw new NotFoundException('Board not found');
-  //   }
+    // Tìm cột cần cập nhật trong bảng
+    const column = board.columns.find((column) => column.id === columnId);
+    if (!column) {
+      throw new NotFoundException('Column not found');
+    }
 
-  //   board.columns.push(newColumn._id);
-  //   board.ordered.push(newColumn._id.toString());
-  //   await board.save();
+    // Cập nhật các trường được truyền lên trong updateColumnDto
+    for (const [key, value] of Object.entries(updateColumnDto)) {
+      if (value !== undefined) {
+        column[key] = value;
+      }
+    }
 
-  //   const result: IKanbanColumn = {
-  //     id: newColumn._id.toString(),
-  //     name: newColumn.name,
-  //     taskIds: newColumn.taskIds.map((taskId) => taskId.toString()),
-  //   };
+    // Lưu lại bảng sau khi cập nhật
+    await board.save();
 
-  //   return result;
-  // }
+    const result: IKanbanColumn = {
+      id: column.id,
+      name: column.name,
+      taskIds: column.taskIds.map((taskId) => taskId.toString()),
+    };
 
-  // async updateColumn(
-  //   columnId: string,
-  //   updateColumnDto: UpdateColumnDto,
-  // ): Promise<IKanbanColumn> {
-  //   const updatedColumn = await this.columnModel
-  //     .findByIdAndUpdate(columnId, updateColumnDto, { new: true })
-  //     .exec();
+    return result;
+  }
 
-  //   if (!updatedColumn) {
-  //     throw new NotFoundException('Column not found');
-  //   }
+  async deleteColumn(columnId: string): Promise<void> {
+    const board = await this.boardModel.findOne().exec();
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
 
-  //   const result: IKanbanColumn = {
-  //     id: updatedColumn._id.toString(),
-  //     name: updatedColumn.name,
-  //     taskIds: updatedColumn.taskIds.map((taskId) => taskId.toString()),
-  //   };
+    const columnIndex = board.columns.findIndex(
+      (column) => column.id === columnId,
+    );
+    if (columnIndex === -1) {
+      throw new NotFoundException('Column not found');
+    }
 
-  //   return result;
-  // }
+    const column = board.columns[columnIndex];
 
+    // Xóa cột khỏi bảng
+    board.columns.splice(columnIndex, 1);
+
+    // Xóa columnId khỏi danh sách ordered
+    board.ordered = board.ordered.filter((id) => id !== columnId);
+
+    // Xóa tất cả các task liên quan đến cột này
+    const taskIdsToDelete = column.taskIds;
+    board.tasks = board.tasks.filter(
+      (task) => !taskIdsToDelete.includes(task.task_id),
+    );
+
+    // Lưu lại bảng sau khi cập nhật
+    await board.save();
+  }
   // async moveColumn(newOrdered: string[]): Promise<IKanban> {
   //   const board = await this.boardModel.findOne().exec();
 
@@ -151,29 +148,6 @@ export class KanbanService {
   //   };
 
   //   return result;
-  // }
-
-  // async deleteColumn(columnId: string): Promise<void> {
-  //   const column = await this.columnModel.findById(columnId).exec();
-  //   if (!column) {
-  //     throw new NotFoundException('Column not found');
-  //   }
-  //   await this.columnModel.deleteOne({ _id: columnId }).exec();
-
-  //   const board = await this.boardModel.findOne().exec();
-  //   if (!board) {
-  //     throw new NotFoundException('Board not found');
-  //   }
-
-  //   board.columns = board.columns.filter(
-  //     (colId) => colId.toString() !== columnId,
-  //   );
-  //   board.ordered = board.ordered.filter((id) => id !== columnId);
-
-  //   await board.save();
-
-  //   // Xóa tất cả các task liên quan đến cột này
-  //   await this.taskModel.deleteMany({ _id: { $in: column.taskIds } }).exec();
   // }
 
   // async createTask(createTaskDto: CreateTaskDto): Promise<IKanbanTask> {
