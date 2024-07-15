@@ -41,6 +41,11 @@ export class StaffMngDto {
   @MaxLength(255)
   phone: string;
 
+  @IsNotEmpty({ message: 'username telegram is not empty !' })
+  @IsDefined()
+  @IsString({ message: 'username telegram must be string type' })
+  telegram: string;
+
   @IsNotEmpty({ message: 'position is not empty !' })
   @IsDefined()
   @IsString({ message: 'position must be string type' })

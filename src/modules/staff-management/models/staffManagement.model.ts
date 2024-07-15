@@ -33,8 +33,14 @@ export class StaffManagementModel {
   exp: number;
 
   @IsString()
+  @IsString()
   @prop()
   phone: string;
+
+  @IsString()
+  @IsString()
+  @prop()
+  telegram: string;
 
   @IsString()
   @prop()
