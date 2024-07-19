@@ -23,6 +23,7 @@ import { CustomerManagerModule } from './modules/customer-management/customerMan
 import { OrderManagerModule } from './modules/order-management/orderManagement.module';
 import { KanbanModule } from './modules/kanban/kanban.module';
 import { StaffAccessoriesManagerModule } from './modules/staff-accessories-management/staffAccessoriesManagement.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { StaffAccessoriesManagerModule } from './modules/staff-accessories-manag
     CustomerManagerModule,
     OrderManagerModule,
     KanbanModule,
+    CalendarModule,
     StaffAccessoriesManagerModule,
   ],
   controllers: [AppController],
