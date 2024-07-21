@@ -1,6 +1,3 @@
-/* eslint-disable prettier/prettier */
-// MARK: keep chalk v4.x
-// https://stackoverflow.com/questions/70309135/chalk-error-err-require-esm-require-of-es-module
 import chalk from 'chalk';
 
 enum LoggerLevel {
@@ -16,7 +13,7 @@ const renderTime = () => {
 };
 
 const renderScope = (scope: string) => {
-  return chalk?.green.underline(scope);
+  return chalk.green.underline(scope);
 };
 
 const renderMessage = (color: chalk.Chalk, messages: any[]) => {
@@ -31,7 +28,7 @@ const renderLog = (
 ) => {
   return (...messages: any) => {
     const logs: any[] = [];
-    logs.push(chalk?.greenBright(`[NP]`));
+    logs.push(chalk.greenBright(`[NP]`));
     logs.push(renderTime());
     logs.push(level);
     if (scope) {
@@ -44,26 +41,26 @@ const renderLog = (
 const createLogger = (scope?: string) => ({
   debug: renderLog(
     LoggerLevel.Debug,
-    chalk?.cyan('[DEBUG]'),
-    chalk?.cyanBright,
+    chalk.cyan('[DEBUG]'),
+    chalk.cyanBright,
     scope,
   ),
   info: renderLog(
     LoggerLevel.Info,
-    chalk?.blue('[_INFO]'),
-    chalk?.greenBright,
+    chalk.blue('[_INFO]'),
+    chalk.greenBright,
     scope,
   ),
   warn: renderLog(
     LoggerLevel.Warn,
-    chalk?.yellow('[_WARN]'),
-    chalk?.yellowBright,
+    chalk.yellow('[_WARN]'),
+    chalk.yellowBright,
     scope,
   ),
   error: renderLog(
     LoggerLevel.Error,
-    chalk?.red('[ERROR]'),
-    chalk?.redBright,
+    chalk.red('[ERROR]'),
+    chalk.redBright,
     scope,
   ),
 });

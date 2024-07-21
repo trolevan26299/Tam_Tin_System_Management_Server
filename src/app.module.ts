@@ -22,6 +22,8 @@ import { SubCategoryManagerModule } from './modules/sub-category-management/subC
 import { CustomerManagerModule } from './modules/customer-management/customerManagement.module';
 import { OrderManagerModule } from './modules/order-management/orderManagement.module';
 import { KanbanModule } from './modules/kanban/kanban.module';
+import { StaffAccessoriesManagerModule } from './modules/staff-accessories-management/staffAccessoriesManagement.module';
+import { CalendarModule } from './modules/calendar/calendar.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { KanbanModule } from './modules/kanban/kanban.module';
     CustomerManagerModule,
     OrderManagerModule,
     KanbanModule,
+    CalendarModule,
+    StaffAccessoriesManagerModule,
   ],
   controllers: [AppController],
   providers: [

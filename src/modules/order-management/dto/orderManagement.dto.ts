@@ -15,17 +15,15 @@ export class ItemDto {
   @IsDefined()
   device: string;
 
-  @IsNumber()
-  @IsNotEmpty({ message: 'price is not empty !' })
+  @IsArray()
+  @IsString({ each: true })
+  @IsNotEmpty({ message: 'Device array must not be empty' })
   @IsDefined()
-  quantity: number;
-}
+  details?: string[];
 
-export class DeliveryDto {
-  @IsNotEmpty({ message: 'shipBy is not empty !' })
-  @IsString()
-  @IsDefined()
-  shipBy: string;
+  @IsNumber()
+  @IsNotEmpty({ message: 'Price must not be empty' })
+  price: number;
 }
 
 export class OrderMngDto {
@@ -41,13 +39,12 @@ export class OrderMngDto {
   @IsDefined()
   customer: string;
 
-  @IsNotEmpty({ message: 'delivery is not empty !' })
-  @ValidateNested()
-  @Type(() => DeliveryDto)
+  @IsNotEmpty({ message: 'ship by is not empty !' })
+  @IsString()
   @IsDefined()
-  delivery: DeliveryDto;
+  shipBy: string;
 
-  @IsNotEmpty({ message: 'name is not empty !' })
+  @IsNotEmpty({ message: 'delivery date is not empty !' })
   @IsDefined()
   @IsString({ message: 'delivery_date must be string type' })
   delivery_date: string;
@@ -56,6 +53,9 @@ export class OrderMngDto {
   @IsDefined()
   @IsNumber()
   totalAmount: number;
+
+  @IsNumber()
+  priceSaleOff?: number;
 
   @IsString({ message: 'note must be string type' })
   @IsDefined()

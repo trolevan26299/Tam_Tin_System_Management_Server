@@ -50,16 +50,14 @@ export class OrderManagementController {
   async updateOrderById(
     @Param('id') id: string,
     @Body() body: OrderMngDto,
-  ): Promise<OrderManagementModel> {
+  ): Promise<OrderManagementModel | boolean> {
     return await this.orderManagementService.updateOrderById(id, body);
   }
 
   @Roles(USER_TYPE.SUPER_ADMIN)
   @UseGuards(RolesGuard)
   @Delete(':id')
-  async deleteOrderById(
-    @Param('id') id: string,
-  ): Promise<OrderManagementModel> {
+  async deleteOrderById(@Param('id') id: string): Promise<boolean> {
     return await this.orderManagementService.deleteOrderById(id);
   }
 }

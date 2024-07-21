@@ -1,30 +1,40 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Param,
-  Put,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Post,
+  Put,
 } from '@nestjs/common';
 import { KanbanService } from './kanban.service';
-import { CreateColumnDto, UpdateColumnDto } from './dto/column.dto';
-import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
+import { ClearColumnDto, UpdateColumnDto } from './dto/board.dto';
 
 @Controller('kanban')
 export class KanbanController {
   constructor(private readonly kanbanService: KanbanService) {}
 
+  // Get all columns and tasks
   @Get()
-  async getBoard() {
+  async getBoard(): Promise<any> {
     return this.kanbanService.getBoard();
   }
 
+  // Add a new column
   @Post('column')
-  async createColumn(@Body() createColumnDto: CreateColumnDto) {
-    return this.kanbanService.createColumn(createColumnDto);
+  async addColumn(
+    @Body() columnData: { id: string; name: string; taskIds: string[] },
+  ) {
+    return this.kanbanService.addColumn(columnData);
   }
 
+  // Add a new task
+  @Post('task')
+  async addTask(@Body() taskData: any) {
+    return this.kanbanService.addTask(taskData);
+  }
+
+  // Update a column
   @Put('column/:columnId')
   async updateColumn(
     @Param('columnId') columnId: string,
@@ -32,35 +42,33 @@ export class KanbanController {
   ) {
     return this.kanbanService.updateColumn(columnId, updateColumnDto);
   }
-
-  @Post('column/order')
-  async moveColumn(@Body() newOrdered: string[]) {
-    return this.kanbanService.moveColumn(newOrdered);
-  }
-
-  @Delete('column/:columnId')
-  async deleteColumn(@Param('columnId') columnId: string) {
-    return this.kanbanService.deleteColumn(columnId);
-  }
-
-  @Post('task')
-  async createTask(@Body() createTaskDto: CreateTaskDto) {
-    return this.kanbanService.createTask(createTaskDto);
-  }
-
+  // Update a task
   @Put('task/:taskId')
   async updateTask(
     @Param('taskId') taskId: string,
-    @Body() updateTaskDto: UpdateTaskDto,
+    @Body() updateTaskDto: any,
   ) {
     return this.kanbanService.updateTask(taskId, updateTaskDto);
   }
 
+  // Delete a column
+  @Delete('column/:columnId')
+  async deleteColumn(@Param('columnId') columnId: string): Promise<void> {
+    return this.kanbanService.deleteColumn(columnId);
+  }
+
+  // Clear a column
+  @Post('column/clear')
+  async clearColumn(@Body() clearColumnDto: ClearColumnDto): Promise<void> {
+    return this.kanbanService.clearColumn(clearColumnDto.columnId);
+  }
+
+  // Delete a task
   @Delete('task/:columnId/:taskId')
   async deleteTask(
     @Param('columnId') columnId: string,
     @Param('taskId') taskId: string,
-  ) {
+  ): Promise<void> {
     return this.kanbanService.deleteTask(columnId, taskId);
   }
 }

@@ -28,13 +28,29 @@ export class StaffManagementModel {
   @prop({ required: true })
   position: string;
 
+  @IsNumber()
+  @prop()
+  exp: number;
+
+  @IsString()
   @IsString()
   @prop()
-  time_keeping_id?: string;
+  phone: string;
+
+  @IsString()
+  @IsString()
+  @prop()
+  telegram: string;
 
   @IsString()
   @prop()
-  employee_turnover_id?: string;
+  note?: string;
+
+  @prop()
+  regDt?: string;
+
+  @prop()
+  modDt?: string;
 }
 
 export const StaffManagementProvider = getProviderByTypegooseClass(
