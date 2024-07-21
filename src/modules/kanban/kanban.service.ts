@@ -95,6 +95,24 @@ export class KanbanService {
 
     return result;
   }
+  // Update a task
+  async updateTask(taskId: string, updateTaskDto: any): Promise<any> {
+    const board = await this.boardModel.findOne().exec();
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
+    // Tìm task cần cập nhật trong bảng
+    const task = board.tasks.find((task) => task.task_id === taskId);
+    if (!task) {
+      throw new NotFoundException('Task not found');
+    }
+    Object.assign(task.detail, updateTaskDto);
+    board.markModified('tasks');
+    // Lưu lại bảng sau khi cập nhật
+    await board.save();
+
+    return task;
+  }
 
   // Delete a column
   async deleteColumn(columnId: string): Promise<void> {

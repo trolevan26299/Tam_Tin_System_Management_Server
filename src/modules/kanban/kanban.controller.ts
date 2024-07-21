@@ -48,9 +48,7 @@ export class KanbanController {
     @Param('taskId') taskId: string,
     @Body() updateTaskDto: any,
   ) {
-    console.log('update task dto', updateTaskDto);
-    // return this.kanbanService.updateColumn(taskId, updateTaskDto);
-    return true;
+    return this.kanbanService.updateTask(taskId, updateTaskDto);
   }
 
   // Delete a column
