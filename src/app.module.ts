@@ -24,6 +24,7 @@ import { OrderManagerModule } from './modules/order-management/orderManagement.m
 import { KanbanModule } from './modules/kanban/kanban.module';
 import { StaffAccessoriesManagerModule } from './modules/staff-accessories-management/staffAccessoriesManagement.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
+import { AnalyticsManagementModule } from './modules/analytics-management/analyticsManagement.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { CalendarModule } from './modules/calendar/calendar.module';
     KanbanModule,
     CalendarModule,
     StaffAccessoriesManagerModule,
+    AnalyticsManagementModule,
   ],
   controllers: [AppController],
   providers: [
