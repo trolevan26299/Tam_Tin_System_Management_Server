@@ -12,7 +12,7 @@ import {
 import { CalendarService } from './calendar.service';
 import { CreateEventDto } from './dto/calendar.dto';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '@app/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('Calendar')

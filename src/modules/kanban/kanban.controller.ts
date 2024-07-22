@@ -8,10 +8,10 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { KanbanService } from './kanban.service';
 import { ClearColumnDto, UpdateColumnDto } from './dto/board.dto';
+import { KanbanService } from './kanban.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@nestjs/passport';
+import { AuthGuard } from '@app/guards/auth.guard';
 
 @ApiBearerAuth()
 @ApiTags('Kanban')
