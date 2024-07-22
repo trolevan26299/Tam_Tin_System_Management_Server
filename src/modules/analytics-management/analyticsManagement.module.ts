@@ -13,6 +13,7 @@ import { AnalyticsManagementService } from './analyticsManagement.service';
     DeviceManagementProvider,
     CustomerManagementProvider,
     AnalyticsManagementService,
+    AnalyticsManagementModule,
   ],
 })
 export class AnalyticsManagementModule {}

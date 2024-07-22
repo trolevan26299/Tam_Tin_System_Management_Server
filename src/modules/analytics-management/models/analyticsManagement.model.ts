@@ -1,10 +1,14 @@
-import { getProviderByTypegooseClass } from '@app/transformers/model.transformer';
+import { Schema, Document, model } from 'mongoose';
 
-export class AnalyticsManagementModel {
-  //
+export interface OrderManagementModel extends Document {
+  delivery_date: Date;
 }
 
-export const AnalyticsManagementProvider = getProviderByTypegooseClass(
-  AnalyticsManagementModel,
-  'analyst_overview',
+const OrderManagementSchema = new Schema<OrderManagementModel>({
+  delivery_date: { type: Date, required: true },
+});
+
+export const OrderManagement = model<OrderManagementModel>(
+  'OrderManagement',
+  OrderManagementSchema,
 );
