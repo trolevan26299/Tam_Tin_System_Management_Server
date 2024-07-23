@@ -6,10 +6,16 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
-import { KanbanService } from './kanban.service';
 import { ClearColumnDto, UpdateColumnDto } from './dto/board.dto';
+import { KanbanService } from './kanban.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@app/guards/auth.guard';
 
+@ApiBearerAuth()
+@ApiTags('Kanban')
+@UseGuards(AuthGuard)
 @Controller('kanban')
 export class KanbanController {
   constructor(private readonly kanbanService: KanbanService) {}
