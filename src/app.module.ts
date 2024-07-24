@@ -24,6 +24,7 @@ import { OrderManagerModule } from './modules/order-management/orderManagement.m
 import { KanbanModule } from './modules/kanban/kanban.module';
 import { StaffAccessoriesManagerModule } from './modules/staff-accessories-management/staffAccessoriesManagement.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
+import { SalaryModule } from './modules/salary/salary.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { CalendarModule } from './modules/calendar/calendar.module';
     ]),
     DatabaseModule,
     AuthModule,
+    SalaryModule,
     AccountManagerModule,
     CategoryManagerModule,
     DeviceManagerModule,

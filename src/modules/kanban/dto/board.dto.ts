@@ -1,4 +1,4 @@
-import { IsString } from 'class-validator';
+import { IsArray, IsString } from 'class-validator';
 
 export class UpdateColumnDto {
   @IsString()
@@ -7,4 +7,21 @@ export class UpdateColumnDto {
 
 export class ClearColumnDto {
   columnId: string;
+}
+
+export class MoveTaskDto {
+  @IsString()
+  sourceColumnId: string;
+
+  @IsString()
+  destinationColumnId: string;
+
+  @IsArray()
+  sourceTaskIds: string[];
+
+  @IsArray()
+  destinationTaskIds: string[];
+
+  @IsString()
+  taskMoveId: string;
 }

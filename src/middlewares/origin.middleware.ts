@@ -9,19 +9,25 @@ import {
 import { isProdEnv } from '../app.environment';
 import * as TEXT from '../constants/text.constant';
 
-/**
- * @class OriginMiddleware
- * @classdesc verification request origin and referer
- */
 @Injectable()
 export class OriginMiddleware implements NestMiddleware {
+  allowedOrigins = [
+    'https://maydemtientamtin.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:8081',
+  ];
+
   use(request: Request, response: Response, next) {
-    // production only
     if (isProdEnv) {
       const { origin, referer } = request.headers;
-      const isAllowed = (field) => !field;
-      const isAllowedOrigin = isAllowed(origin);
-      const isAllowedReferer = isAllowed(referer);
+
+      const isAllowedOrigin = origin
+        ? this.allowedOrigins.includes(origin)
+        : false;
+      const isAllowedReferer = referer
+        ? this.allowedOrigins.some((url) => referer.startsWith(url))
+        : false;
+
       if (!isAllowedOrigin && !isAllowedReferer) {
         return response.status(HttpStatus.UNAUTHORIZED).jsonp({
           status: ResponseStatus.Error,
