@@ -1,15 +1,60 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import axios from 'axios';
 import { Model } from 'mongoose';
 import { InjectModel } from '../../transformers/model.transformer';
 import { IKanban, IKanbanColumn } from '../../types/kanban';
+import { MoveTaskDto, UpdateColumnDto } from './dto/board.dto';
 import { BoardKanbanModel } from './models/board.model';
-import { UpdateColumnDto } from './dto/board.dto';
 
 @Injectable()
 export class KanbanService {
   constructor(
     @InjectModel(BoardKanbanModel) private boardModel: Model<BoardKanbanModel>,
   ) {}
+
+  escapeMarkdownV2 = (text: string) => {
+    return text
+      .replace(/_/g, '\\_')
+      .replace(/\*/g, '\\*')
+      .replace(/\[/g, '\\[')
+      .replace(/\]/g, '\\]')
+      .replace(/\(/g, '\\(')
+      .replace(/\)/g, '\\)')
+      .replace(/~/g, '\\~')
+      .replace(/`/g, '\\`')
+      .replace(/>/g, '\\>')
+      .replace(/#/g, '\\#')
+      .replace(/\+/g, '\\+')
+      .replace(/-/g, '\\-')
+      .replace(/=/g, '\\=')
+      .replace(/\|/g, '\\|')
+      .replace(/\{/g, '\\{')
+      .replace(/\}/g, '\\}')
+      .replace(/\./g, '\\.')
+      .replace(/!/g, '\\!');
+  };
+
+  async sendMessageTelegram(
+    text: string,
+    parse_mode: string = 'HTML',
+  ): Promise<void> {
+    const baseUrl = 'https://api.telegram.org/bot';
+    const botToken = '7345653463:AAEZd3TO7D92YlJPqoLYUfDahh7K2J1TpTE';
+    const chat_id = '-1002160052340';
+    const message_thread_id = '2';
+    const url = `${baseUrl}${botToken}/sendMessage`;
+    try {
+      await axios.post(url, {
+        chat_id,
+        parse_mode,
+        text: text,
+        message_thread_id,
+      });
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  }
+
   // Get all columns and tasks
   async getBoard(): Promise<{ board: IKanban }> {
     const board = await this.boardModel.findOne().exec();
@@ -95,6 +140,99 @@ export class KanbanService {
 
     return result;
   }
+  // Update order column
+  async updateOrderColumn(newOrdered: string[]): Promise<any> {
+    const board = await this.boardModel.findOne().exec();
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
+    // Tìm cột cần cập nhật trong bảng
+    board.ordered = newOrdered;
+    await board.save();
+
+    return newOrdered;
+  }
+  async updateOrderTaskSameColumn(
+    columnId: string,
+    taskIds: string[],
+  ): Promise<any> {
+    const board = await this.boardModel.findOne().exec();
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
+    // Tìm cột cần cập nhật trong bảng
+
+    const column = board.columns.find((column) => column.id === columnId);
+    if (!column) {
+      throw new NotFoundException('Column not found');
+    }
+    column.taskIds = taskIds;
+    await board.save();
+
+    return taskIds;
+  }
+
+  async updateOrderTaskAnotherColumn(moveTaskDto: MoveTaskDto): Promise<any> {
+    const {
+      sourceColumnId,
+      destinationColumnId,
+      sourceTaskIds,
+      destinationTaskIds,
+      taskMoveId,
+    } = moveTaskDto;
+    const board = await this.boardModel.findOne().exec();
+    if (!board) {
+      throw new NotFoundException('Board not found');
+    }
+    const sourceColumn = board.columns.find(
+      (column) => column.id === sourceColumnId,
+    );
+    const destinationColumn = board.columns.find(
+      (column) => column.id === destinationColumnId,
+    );
+    const taskMove = board.tasks.find((task) => task.task_id === taskMoveId);
+    if (!sourceColumn || !destinationColumn) {
+      throw new NotFoundException('Column not found');
+    }
+    sourceColumn.taskIds = sourceTaskIds;
+    destinationColumn.taskIds = destinationTaskIds;
+    await board.save();
+    if (destinationColumn.name === 'Đang thực hiện') {
+      let assigneArray = '';
+      if (taskMove.detail.assignee.length > 1) {
+        assigneArray = taskMove.detail.assignee
+          .map((assignee) => assignee.telegram)
+          .join(',');
+      } else {
+        assigneArray = taskMove.detail.assignee[0].telegram;
+      }
+      const formattedDate = taskMove.detail.due.map((date) => {
+        const d = new Date(date);
+        const formattedDate = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+        return formattedDate;
+      });
+      let priorityText = '';
+      switch (taskMove.detail.priority) {
+        case 'hight':
+          priorityText = 'Gấp';
+          break;
+        case 'medium':
+          priorityText = 'Bình thường';
+          break;
+        case 'low':
+          priorityText = 'Chưa gấp';
+          break;
+        default:
+          priorityText = '';
+      }
+      await this.sendMessageTelegram(
+        `Xin chào anh ${assigneArray}\n<b>${taskMove.detail.name}</b>\n<b>Mô tả:</b> ${taskMove.detail.description}\n<b>Mức độ:</b> ${priorityText}\n<b>Thời gian thực hiện:</b> ${formattedDate[0]} - ${formattedDate[1]}`,
+        'HTML',
+      );
+    }
+    return { message: 'Tasks moved successfully' };
+  }
+
   // Update a task
   async updateTask(taskId: string, updateTaskDto: any): Promise<any> {
     const board = await this.boardModel.findOne().exec();
