@@ -34,8 +34,9 @@ export class AccountManagerService {
   // VALIDATE AUTH DATA
   public validateAuthData(payload: any): Promise<any> {
     const isVerified = lodash.isEqual(payload.data, APP_CONFIG.AUTH.data);
-    return isVerified ? payload.data : null;
+    return Promise.resolve(isVerified ? payload.data : null);
   }
+
 
   //CREATE ACCOUNT
   public async createAccount(
