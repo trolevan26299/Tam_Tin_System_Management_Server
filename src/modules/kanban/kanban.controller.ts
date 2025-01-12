@@ -1,3 +1,4 @@
+import { AuthGuard } from '@app/guards/auth.guard';
 import {
   Body,
   Controller,
@@ -8,10 +9,9 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ClearColumnDto, UpdateColumnDto } from './dto/board.dto';
-import { KanbanService } from './kanban.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { AuthGuard } from '@app/guards/auth.guard';
+import { ClearColumnDto, MoveTaskDto, UpdateColumnDto } from './dto/board.dto';
+import { KanbanService } from './kanban.service';
 
 @ApiBearerAuth()
 @ApiTags('Kanban')
@@ -48,6 +48,31 @@ export class KanbanController {
   ) {
     return this.kanbanService.updateColumn(columnId, updateColumnDto);
   }
+  // Update order column
+  @Post('column/order')
+  async updateOrderColumn(@Body() newOrdered: string[]) {
+    return this.kanbanService.updateOrderColumn(newOrdered);
+  }
+
+  // Update order task same column
+  @Post('task-same-column/order')
+  async updateOrderTaskSameColumn(
+    @Body() body: { columnId: string; taskIds: string[] },
+  ): Promise<any> {
+    const { columnId, taskIds } = body;
+    console.log('columnId', columnId);
+    console.log('taskIds', taskIds);
+    return this.kanbanService.updateOrderTaskSameColumn(columnId, taskIds);
+  }
+
+  // Update order task another column
+  @Post('task-another-column/order')
+  async updateOrderTaskAnotherColumn(
+    @Body() moveTaskDto: MoveTaskDto,
+  ): Promise<any> {
+    return await this.kanbanService.updateOrderTaskAnotherColumn(moveTaskDto);
+  }
+
   // Update a task
   @Put('task/:taskId')
   async updateTask(
