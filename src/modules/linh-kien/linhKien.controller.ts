@@ -6,14 +6,15 @@ import {
   Param,
   Post,
   Query,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 import {
   CreateLinhKienDTO,
-  DeleteLinhKienDTO,
   FilterLinhKienDto,
+  LinhKienDto,
 } from './dto/linhKien.dto';
 import { LinhKienService } from './linhKien.service';
 import { AuthGuard } from '@app/guards/auth.guard';
@@ -25,18 +26,24 @@ import { AuthGuard } from '@app/guards/auth.guard';
 export class LinhKienController {
   constructor(private readonly linhKienService: LinhKienService) {}
 
-  @Get('list')
-  async getList(@Query() query: FilterLinhKienDto) {
-    return this.linhKienService.getList(query);
+  @Get()
+  async getList(@Query() query: FilterLinhKienDto): Promise<LinhKienDto> {
+    return await this.linhKienService.getList(query);
   }
 
   @Post()
-  async create(@Body() createDto: CreateLinhKienDTO) {
-    return this.linhKienService.create(createDto);
+  async create(
+    @Body() createDto: CreateLinhKienDTO,
+    @Request() req: any,
+  ): Promise<any> {
+    return this.linhKienService.create(createDto, req);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: string, @Body() deleteDto: DeleteLinhKienDTO) {
-    return this.linhKienService.deleteLinhKien(id, deleteDto.passcode);
+  async delete(
+    @Param('id') id: string,
+    @Query('passcode') passcode: number,
+  ): Promise<any> {
+    return this.linhKienService.deleteLinhKien(id, Number(passcode));
   }
 }

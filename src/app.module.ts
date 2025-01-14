@@ -24,6 +24,7 @@ import { OrderManagerModule } from './modules/order-management/orderManagement.m
 import { KanbanModule } from './modules/kanban/kanban.module';
 import { StaffAccessoriesManagerModule } from './modules/staff-accessories-management/staffAccessoriesManagement.module';
 import { CalendarModule } from './modules/calendar/calendar.module';
+import { AnalyticsManagementModule } from './modules/analytics-management/analyticsManagement.module';
 import { SalaryModule } from './modules/salary/salary.module';
 import { LinhKienModule } from './modules/linh-kien/linhKien.module';
 import { TransactionLinhKienModule } from './modules/transaction-linh-kien/transaction-linh-kien.module';
@@ -52,6 +53,7 @@ import { TransactionLinhKienModule } from './modules/transaction-linh-kien/trans
     KanbanModule,
     CalendarModule,
     StaffAccessoriesManagerModule,
+    AnalyticsManagementModule,
   ],
   controllers: [AppController],
   providers: [
