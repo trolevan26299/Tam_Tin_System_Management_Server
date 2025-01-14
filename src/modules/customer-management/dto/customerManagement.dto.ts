@@ -30,6 +30,8 @@ export class CustomerMngDTO {
   email: string;
 
   note?: string;
+  regDt?: string;
+  modDt?: string;
 }
 
 export class QueryCustomerDto {

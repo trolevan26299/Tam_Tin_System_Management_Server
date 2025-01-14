@@ -32,6 +32,14 @@ export class CustomerManagementModel {
   @IsString()
   @prop()
   note?: string;
+
+  @IsString()
+  @prop()
+  regDt?: string;
+
+  @IsString()
+  @prop()
+  modDt?: string;
 }
 
 export const CustomerManagementProvider = getProviderByTypegooseClass(

@@ -1,13 +1,14 @@
 import { MongooseModel } from '@app/interfaces/mongoose.interface';
 import { InjectModel } from '@app/transformers/model.transformer';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import moment from 'moment';
+import { Types } from 'mongoose';
 import {
   CustomerMngDTO,
   ListCustomerDto,
   QueryCustomerDto,
 } from './dto/customerManagement.dto';
 import { CustomerManagementModel } from './models/customerManagement.model';
-import { Types } from 'mongoose';
 
 @Injectable()
 export class CustomerManagerService {
@@ -73,7 +74,12 @@ export class CustomerManagerService {
       throw new HttpException('Email already exists', HttpStatus.CONFLICT);
     }
 
-    const newCustomer = new this.customerManagementModel(body);
+    const newBody = {
+      ...body,
+      regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    };
+
+    const newCustomer = new this.customerManagementModel(newBody);
     return newCustomer.save();
   }
 
@@ -111,9 +117,14 @@ export class CustomerManagerService {
         throw new HttpException('Email already exists', HttpStatus.CONFLICT);
       }
     }
+
+    const newBody = {
+      ...body,
+      modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+    };
     const newCustomer = await this.customerManagementModel.findOneAndUpdate(
       { _id: objectId },
-      body,
+      newBody,
       { new: true },
     );
 
