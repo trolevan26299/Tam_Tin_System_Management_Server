@@ -24,7 +24,7 @@ export class TransactionLinhKienService {
   async getList(query: FilterTransactionDto): Promise<any> {
     try {
       const items_per_page = query.items_per_page || 10;
-      const page = query.page || 1;
+      const page = Number(query.page) + 1 || 1;
       const keyword = query.keyword || '';
       const type = query.type;
 
@@ -65,6 +65,7 @@ export class TransactionLinhKienService {
       const newTransaction = new this.transactionModel({
         ...createDto,
         date_update: moment().format('YYYY-MM-DD HH:mm:ss'),
+        create_date: moment().format('YYYY-MM-DD HH:mm:ss'),
       });
 
       // Lấy thông tin linh kiện

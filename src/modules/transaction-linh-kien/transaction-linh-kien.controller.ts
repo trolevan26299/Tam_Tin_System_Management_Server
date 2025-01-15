@@ -28,7 +28,7 @@ export class TransactionLinhKienController {
     private readonly transactionService: TransactionLinhKienService,
   ) {}
 
-  @Get('list')
+  @Get()
   async getList(@Query() query: FilterTransactionDto) {
     return this.transactionService.getList(query);
   }
