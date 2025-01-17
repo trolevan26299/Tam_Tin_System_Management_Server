@@ -28,7 +28,6 @@ export class LinhKienController {
 
   @Get()
   async getList(@Query() query: FilterLinhKienDto): Promise<LinhKienDto> {
-    console.log('🚀 ~ LinhKienController ~ getList ~ query:', query);
     return await this.linhKienService.getList(query);
   }
 

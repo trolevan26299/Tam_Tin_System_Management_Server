@@ -29,7 +29,7 @@ export class DataUngLinhKienDto {
 export class LinhKienModel {
   @IsString()
   @IsDefined()
-  @prop({ required: true })
+  @prop({ required: true, unique: true })
   name_linh_kien: string;
 
   @IsNumber()

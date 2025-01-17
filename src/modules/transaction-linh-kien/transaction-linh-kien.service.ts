@@ -321,4 +321,24 @@ export class TransactionLinhKienService {
       );
     }
   }
+
+  async getById(id: string): Promise<any> {
+    try {
+      const transaction = await this.transactionModel.findById(id).exec();
+
+      if (!transaction) {
+        throw new HttpException(
+          'transaction not exists !',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return transaction;
+    } catch (error) {
+      throw new HttpException(
+        'An error occurred while fetching the transaction',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
