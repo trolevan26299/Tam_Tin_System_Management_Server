@@ -40,7 +40,12 @@ export class StaffManagementModel {
   @IsString()
   @IsString()
   @prop()
-  telegram: string;
+  username_telegram: string;
+
+  @IsString()
+  @IsString()
+  @prop()
+  user_id_telegram: string;
 
   @IsString()
   @prop()
