@@ -53,4 +53,9 @@ export class TransactionLinhKienController {
   ) {
     return this.transactionService.delete(id, deleteDto.passcode);
   }
+
+  @Get(':id')
+  async getById(@Param('id') id: string) {
+    return this.transactionService.getById(id);
+  }
 }
