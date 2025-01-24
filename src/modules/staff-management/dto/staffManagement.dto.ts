@@ -25,7 +25,7 @@ export class StaffMngDto {
   @IsNumber()
   age: number;
 
-  @IsNotEmpty({ message: 'age is not empty !' })
+  @IsNotEmpty({ message: 'exp is not empty !' })
   @IsDefined()
   @IsNumber()
   exp: number;
@@ -41,10 +41,13 @@ export class StaffMngDto {
   @MaxLength(255)
   phone: string;
 
-  @IsNotEmpty({ message: 'username telegram is not empty !' })
   @IsDefined()
   @IsString({ message: 'username telegram must be string type' })
-  telegram: string;
+  username_telegram: string;
+
+  @IsDefined()
+  @IsString({ message: 'user id telegram must be string type' })
+  user_id_telegram: string;
 
   @IsNotEmpty({ message: 'position is not empty !' })
   @IsDefined()
