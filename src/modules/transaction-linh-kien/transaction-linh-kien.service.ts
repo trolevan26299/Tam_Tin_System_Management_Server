@@ -42,11 +42,11 @@ export class TransactionLinhKienService {
         .limit(items_per_page)
         .sort({ date_update: -1 });
 
-      const total = await this.transactionModel.countDocuments(filter);
+      const totalCount = await this.transactionModel.countDocuments(filter);
 
       return {
         data: transactions,
-        total,
+        totalCount,
         page,
         items_per_page,
       };
@@ -64,7 +64,6 @@ export class TransactionLinhKienService {
     try {
       const newTransaction = new this.transactionModel({
         ...createDto,
-        date_update: moment().format('YYYY-MM-DD HH:mm:ss'),
         create_date: moment().format('YYYY-MM-DD HH:mm:ss'),
       });
 
