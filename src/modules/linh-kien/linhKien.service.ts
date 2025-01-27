@@ -92,6 +92,12 @@ export class LinhKienService {
       });
       return await newLinhKien.save();
     } catch (error) {
+      if (error.code === 11000) {
+        throw new HttpException(
+          'Tên linh kiện đã tồn tại',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
       throw new HttpException(
         'Lỗi khi tạo linh kiện',
         HttpStatus.INTERNAL_SERVER_ERROR,
