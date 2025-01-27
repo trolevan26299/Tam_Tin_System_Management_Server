@@ -1,23 +1,22 @@
+import { AuthGuard } from '@app/guards/auth.guard';
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  Param,
   Post,
   Put,
-  Delete,
-  Body,
   Query,
-  Param,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { TransactionLinhKienService } from './transaction-linh-kien.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
   CreateTransactionDTO,
-  UpdateTransactionDTO,
-  DeleteTransactionDTO,
   FilterTransactionDto,
+  UpdateTransactionDTO,
 } from './dto/transaction.dto';
-import { AuthGuard } from '@app/guards/auth.guard';
+import { TransactionLinhKienService } from './transaction-linh-kien.service';
 
 @ApiBearerAuth()
 @UseGuards(AuthGuard)
@@ -47,11 +46,8 @@ export class TransactionLinhKienController {
   }
 
   @Delete(':id')
-  async delete(
-    @Param('id') id: string,
-    @Body() deleteDto: DeleteTransactionDTO,
-  ) {
-    return this.transactionService.delete(id, deleteDto.passcode);
+  async delete(@Param('id') id: string, @Query('passcode') passcode: number) {
+    return this.transactionService.delete(id, Number(passcode));
   }
 
   @Get(':id')
