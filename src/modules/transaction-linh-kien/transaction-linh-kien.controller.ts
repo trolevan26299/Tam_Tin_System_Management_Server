@@ -29,11 +29,13 @@ export class TransactionLinhKienController {
 
   @Get()
   async getList(@Query() query: FilterTransactionDto) {
+    console.log('query', query);
     return this.transactionService.getList(query);
   }
 
   @Post()
   async create(@Body() createDto: CreateTransactionDTO) {
+    console.log('createDto', createDto);
     return this.transactionService.create(createDto);
   }
 
