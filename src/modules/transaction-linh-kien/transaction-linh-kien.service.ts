@@ -31,7 +31,10 @@ export class TransactionLinhKienService {
 
       const filter: any = {};
       if (keyword) {
-        filter.name_linh_kien = { $regex: keyword, $options: 'i' };
+        filter.$or = [
+          { name_linh_kien: { $regex: keyword, $options: 'i' } },
+          { 'nhan_vien.name': { $regex: keyword, $options: 'i' } },
+        ];
       }
       if (type) {
         filter.type = type;
@@ -41,7 +44,7 @@ export class TransactionLinhKienService {
         .find(filter)
         .skip((page - 1) * items_per_page)
         .limit(items_per_page)
-        .sort({ date_update: -1 });
+        .sort({ create_date: -1 });
 
       const totalCount = await this.transactionModel.countDocuments(filter);
 
