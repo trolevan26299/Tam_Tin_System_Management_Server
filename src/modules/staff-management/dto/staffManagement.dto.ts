@@ -67,6 +67,8 @@ export class QueryStaffDto {
   items_per_page: number;
   @ApiProperty({ required: false })
   keyword: string;
+  @ApiProperty({ required: false })
+  is_all?: boolean;
 }
 
 export class DetailStaffDto {

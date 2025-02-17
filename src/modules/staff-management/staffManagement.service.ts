@@ -82,6 +82,7 @@ export class StaffManagerService {
       const page = Number(query.page) + 1 || 1;
       const items_per_page = Number(query.items_per_page) || 10;
       const keyword = query.keyword || '';
+      const is_all = query.is_all || false;
 
       const skip = (page - 1) * items_per_page;
       const filter: any = {};
@@ -90,14 +91,25 @@ export class StaffManagerService {
         filter.$or = [{ name: { $regex: keyword, $options: 'i' } }];
       }
 
-      const dataRes = await this.staffManagementModel
-        .find(filter)
-        .sort({ regDt: -1 })
-        .limit(items_per_page)
-        .skip(skip)
-        .exec();
+      let dataRes;
+      let totalCount;
 
-      const totalCount = await this.staffManagementModel.countDocuments(filter);
+      if (is_all) {
+        dataRes = await this.staffManagementModel
+          .find(filter)
+          .sort({ regDt: -1 })
+          .exec();
+        totalCount = dataRes.length;
+      } else {
+        dataRes = await this.staffManagementModel
+          .find(filter)
+          .sort({ regDt: -1 })
+          .limit(items_per_page)
+          .skip(skip)
+          .exec();
+        totalCount = await this.staffManagementModel.countDocuments(filter);
+      }
+
       const lastPage = Math.ceil(totalCount / items_per_page);
       const nextPage = page + 1 > lastPage ? null : page + 1;
       const prevPage = page - 1 < 1 ? null : page - 1;
