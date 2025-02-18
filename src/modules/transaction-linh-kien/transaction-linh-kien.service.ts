@@ -22,7 +22,6 @@ export class TransactionLinhKienService {
   ) {}
 
   async getList(query: FilterTransactionDto): Promise<any> {
-    console.log('query', query);
     try {
       const items_per_page = query.items_per_page || 10;
       const page = Number(query.page) + 1 || 1;
