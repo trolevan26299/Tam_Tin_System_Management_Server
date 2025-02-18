@@ -22,6 +22,7 @@ export class CreateTransactionDTO {
   nguoi_tao: string;
 
   @IsString()
+  @IsOptional()
   noi_dung?: string;
 
   @IsNumber()
