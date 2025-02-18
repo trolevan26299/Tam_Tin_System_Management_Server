@@ -22,8 +22,8 @@ export class CreateTransactionDTO {
   nguoi_tao: string;
 
   @IsString()
-  @IsNotEmpty()
-  noi_dung: string;
+  @IsOptional()
+  noi_dung?: string;
 
   @IsNumber()
   @IsNotEmpty()
