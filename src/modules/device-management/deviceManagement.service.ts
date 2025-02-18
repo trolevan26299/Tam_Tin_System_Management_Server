@@ -14,19 +14,21 @@ import {
   filterDeviceDto,
 } from './dto/deviceManagement.dto';
 import { DeviceManagementModel } from './models/deviceManagement.model';
+import { DeviceListModel } from './models/deviceList.model';
 
 @Injectable()
 export class DeviceManagerService {
   constructor(
     @InjectModel(DeviceManagementModel)
     private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
+    @InjectModel(DeviceListModel)
+    private readonly deviceListModel: MongooseModel<DeviceListModel>,
   ) {}
 
   // VALIDATE AUTH DATA
   public validateAuthData(payload: any): Promise<any> {
-    console.log('payload', payload);
     const isVerified = lodash.isEqual(payload.data, APP_CONFIG.AUTH.data);
-    return isVerified ? payload.data : null;
+    return isVerified ? payload.data : Promise.resolve(null);
   }
 
   //CREATE DEVICE
@@ -35,15 +37,28 @@ export class DeviceManagerService {
   ): Promise<DeviceManagementModel> {
     try {
       const details: DetailDeviceDto[] = [];
+      const deviceListPromises: Promise<any>[] = [];
+
       for (let i = 0; i < createDeviceDto.quantity; i++) {
-        const id_device =
-          await `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`;
+        const id_device = `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`;
+        
+        // Thêm vào details cho devices collection
         details.push({
           status: 'inventory',
           id_device,
         });
+
+        // Tạo bản ghi cho device_lists collection
+        const deviceListDoc = new this.deviceListModel({
+          name: createDeviceDto.name,
+          id_device,
+          status: 'inventory',
+          history_repair: [],
+        });
+        deviceListPromises.push(deviceListDoc.save());
       }
 
+      // Lưu vào devices collection
       const newCreateDeviceDto = {
         name: createDeviceDto.name,
         sub_category_id: createDeviceDto.sub_category_id,
@@ -54,8 +69,11 @@ export class DeviceManagerService {
       };
 
       const newDevice = new this.deviceManagementModel(newCreateDeviceDto);
+      
+      // Lưu song song cả hai collection
+      await Promise.all([newDevice.save(), ...deviceListPromises]);
 
-      return newDevice.save();
+      return newDevice;
     } catch (error) {
       throw new HttpException(
         'An error occurred while creating the device',
@@ -63,6 +81,7 @@ export class DeviceManagerService {
       );
     }
   }
+
 
   //GET ALL DEVICE
   public async getAllDevice(query: filterDeviceDto): Promise<any> {
