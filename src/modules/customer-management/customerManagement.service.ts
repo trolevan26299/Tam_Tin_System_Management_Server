@@ -24,6 +24,10 @@ export class CustomerManagerService {
       const page = Number(query.page) + 1 || 1;
       const items_per_page = Number(query.items_per_page) || 10;
       const keyword = query.keyword || '';
+      const fromDate = query.from_date ? new Date(query.from_date) : null;
+      const toDate = query.to_date ? new Date(query.to_date) : null;
+      console.log('🚀 ~ CustomerManagerService ~ toDate:', toDate);
+      console.log('🚀 ~ CustomerManagerService ~ fromDate:', fromDate);
 
       const skip = (page - 1) * items_per_page;
       const filter: any = {};
@@ -35,8 +39,23 @@ export class CustomerManagerService {
         ];
       }
 
+      if (fromDate || toDate) {
+        const dateFilter: any = {};
+        if (fromDate) {
+          dateFilter.$gte = fromDate
+            .toISOString()
+            .slice(0, 19)
+            .replace('T', ' ');
+        }
+        if (toDate) {
+          dateFilter.$lte = toDate.toISOString().slice(0, 19).replace('T', ' ');
+        }
+        filter['regDt'] = dateFilter;
+      }
+
       const dataRes = await this.customerManagementModel
         .find(filter)
+        .sort({ regDt: -1 })
         .limit(items_per_page)
         .skip(skip)
         .exec();

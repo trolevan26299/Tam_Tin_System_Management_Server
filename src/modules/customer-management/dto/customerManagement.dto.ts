@@ -41,6 +41,10 @@ export class QueryCustomerDto {
   items_per_page: number;
   @ApiProperty({ required: false })
   keyword: string;
+  @ApiProperty({ required: false })
+  from_date?: string;
+  @ApiProperty({ required: false })
+  to_date?: string;
 }
 
 export class ListCustomerDto {
