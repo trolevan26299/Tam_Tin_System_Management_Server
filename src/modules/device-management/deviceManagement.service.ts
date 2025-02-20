@@ -87,13 +87,12 @@ export class DeviceManagerService {
   public async getAllDevice(query: filterDeviceDto): Promise<any> {
     try {
       const hasQuery = Object.keys(query).length > 0;
-      const items_per_page =
-        hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
+      const items_per_page = hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
       const page = hasQuery && query.page ? Number(query.page) + 1 : 1;
       const skip = (page - 1) * items_per_page;
       const keyword = query?.keyword || '';
       const filter: any = {};
-
+  
       if (keyword) {
         const orderIdRegex = /^[0-9a-fA-F]{24}$/;
         if (orderIdRegex.test(keyword)) {
@@ -102,20 +101,80 @@ export class DeviceManagerService {
           filter.$or = [{ name: { $regex: keyword, $options: 'i' } }];
         }
       }
-
-      const queryBuilder = this.deviceManagementModel.find(filter);
-
-      if (hasQuery) {
-        queryBuilder.limit(items_per_page).skip(skip);
-      }
-
-      const data = await queryBuilder.sort({ regDt: -1 }).exec();
-
-      const totalCount =
-        await this.deviceManagementModel.countDocuments(filter);
+  
+      const data = await this.deviceManagementModel.aggregate([
+        { $match: filter },
+        { $sort: { regDt: -1 } },
+        { $skip: skip },
+        { $limit: items_per_page },
+        {
+          $addFields: {
+            "detailIds": {
+              $map: {
+                input: "$detail",
+                as: "det",
+                in: "$$det.id_device"
+              }
+            }
+          }
+        },
+        {
+          $lookup: {
+            from: "device_lists",
+            let: { deviceIds: "$detailIds" },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ["$id_device", "$$deviceIds"]
+                  }
+                }
+              }
+            ],
+            as: "deviceDetails"
+          }
+        },
+        {
+          $addFields: {
+            "detail": {
+              $map: {
+                input: "$detail",
+                as: "det",
+                in: {
+                  $mergeObjects: [
+                    "$$det",
+                    {
+                      deviceInfo: {
+                        $arrayElemAt: [
+                          {
+                            $filter: {
+                              input: "$deviceDetails",
+                              cond: { $eq: ["$$this.id_device", "$$det.id_device"] }
+                            }
+                          },
+                          0
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          $project: {
+            detailIds: 0,
+            deviceDetails: 0
+          }
+        }
+      ]).exec();
+  
+      const totalCount = await this.deviceManagementModel.countDocuments(filter);
       const lastPage = Math.ceil(totalCount / items_per_page);
       const nextPage = page + 1 > lastPage ? null : page + 1;
       const prevPage = page - 1 < 1 ? null : page - 1;
+  
       return {
         data,
         totalCount,
