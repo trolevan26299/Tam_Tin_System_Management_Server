@@ -276,4 +276,33 @@ export class DeviceManagerService {
       );
     }
   }
+  public async deleteByDeviceId(deviceId: string): Promise<any> {
+    try {
+      // Xóa thiết bị từ device_lists collection
+      await this.deviceListModel.findOneAndDelete({ id_device: deviceId });
+
+      // Cập nhật devices collection bằng cách xóa item từ mảng detail
+      const updatedDevice = await this.deviceManagementModel.findOneAndUpdate(
+        { 'detail.id_device': deviceId },
+        { $pull: { detail: { id_device: deviceId } } },
+        { new: true }
+      );
+
+      if (!updatedDevice) {
+        throw new HttpException('Device not found!', HttpStatus.NOT_FOUND);
+      } 
+
+      return {
+        message: 'Device deleted successfully',
+        updatedDevice
+      };
+    } catch (error) {
+      console.error('Error deleting device by device_id:', error);
+      throw new HttpException(
+        'Đã xảy ra lỗi khi xóa thiết bị',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
+
