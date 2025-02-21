@@ -268,14 +268,32 @@ export class DeviceManagerService {
   public async deleteDevice(id: string): Promise<any> {
     try {
       const objectId = new Types.ObjectId(id);
+      
+      // Tìm thiết bị trước khi xóa để lấy danh sách id_device
+      const device = await this.deviceManagementModel.findById(objectId);
+      if (!device) {
+        throw new HttpException('Không tìm thấy thiết bị!', HttpStatus.NOT_FOUND);
+      }
+  
+      // Lấy danh sách id_device từ detail
+      const deviceIds = device.detail.map(item => item.id_device);
+  
+      // Xóa tất cả các bản ghi liên quan trong device_lists
+      await this.deviceListModel.deleteMany({ id_device: { $in: deviceIds } });
+  
+      // Xóa thiết bị trong bảng deviceManagement
       const deleteDevice = await this.deviceManagementModel.findOneAndDelete({
         _id: objectId,
       });
-      return deleteDevice;
+  
+      return {
+        message: 'Xóa thiết bị thành công',
+        deletedDevice: deleteDevice
+      };
     } catch (error) {
-      console.error('Error delete device:', error);
+      console.error('Lỗi khi xóa thiết bị:', error);
       throw new HttpException(
-        'An error occurred while delete the device',
+        'Đã xảy ra lỗi khi xóa thiết bị',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
