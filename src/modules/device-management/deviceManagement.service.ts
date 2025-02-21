@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable prettier/prettier */
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import lodash from 'lodash';
@@ -15,6 +16,7 @@ import {
 } from './dto/deviceManagement.dto';
 import { DeviceManagementModel } from './models/deviceManagement.model';
 import { DeviceListModel } from './models/deviceList.model';
+import { LinhKienModel } from '../linh-kien/models/linhKien.model';
 
 @Injectable()
 export class DeviceManagerService {
@@ -23,6 +25,8 @@ export class DeviceManagerService {
     private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
     @InjectModel(DeviceListModel)
     private readonly deviceListModel: MongooseModel<DeviceListModel>,
+    @InjectModel(LinhKienModel)
+    private readonly linhKienModel: MongooseModel<LinhKienModel>,
   ) {}
 
   // VALIDATE AUTH DATA
@@ -278,26 +282,73 @@ export class DeviceManagerService {
   }
   public async deleteByDeviceId(deviceId: string): Promise<any> {
     try {
+      // Kiểm tra thiết bị trong device_lists collection
+      const deviceToDelete = await this.deviceListModel.findOne({ id_device: deviceId });
+      
+      if (!deviceToDelete) {
+        throw new HttpException('Thiết bị không tồn tại!', HttpStatus.NOT_FOUND);
+      }
+  
+      // Nếu có lịch sử sửa chữa, cập nhật lại số lượng linh kiện đã ứng
+      if (deviceToDelete.history_repair && deviceToDelete.history_repair.length > 0) {
+        // Tạo map để tổng hợp số lượng linh kiện theo nhân viên
+        const staffPartsMap = new Map();
+  
+        // Duyệt qua từng lịch sử sửa chữa
+        for (const repair of deviceToDelete.history_repair) {
+          const staffName = repair.staff_repair;
+          
+          // Duyệt qua từng linh kiện trong lần sửa
+          for (const linhKienItem of repair.linh_kien) {
+            const key = `${staffName}-${linhKienItem.name}`;
+            
+            if (!staffPartsMap.has(key)) {
+              staffPartsMap.set(key, {
+                staffName,
+                partName: linhKienItem.name,
+                total: 0
+              });
+            }
+            
+            staffPartsMap.get(key).total += linhKienItem.total;
+          }
+        }
+  
+        // Cập nhật số lượng trong collection linh_kien
+        for (const [_, data] of staffPartsMap) {
+          await this.linhKienModel.updateOne(
+            { 
+              name_linh_kien: data.partName,
+              'data_ung.name': data.staffName 
+            },
+            {
+              $inc: { 'data_ung.$.total': data.total }
+            }
+          );
+        }
+      }
+  
       // Xóa thiết bị từ device_lists collection
       await this.deviceListModel.findOneAndDelete({ id_device: deviceId });
-
-      // Cập nhật devices collection bằng cách xóa item từ mảng detail
+  
+      // Cập nhật devices collection
       const updatedDevice = await this.deviceManagementModel.findOneAndUpdate(
         { 'detail.id_device': deviceId },
         { $pull: { detail: { id_device: deviceId } } },
         { new: true }
       );
-
+  
       if (!updatedDevice) {
-        throw new HttpException('Device not found!', HttpStatus.NOT_FOUND);
-      } 
-
+        throw new HttpException('Không tìm thấy thiết bị trong danh sách!', HttpStatus.NOT_FOUND);
+      }
+  
       return {
-        message: 'Device deleted successfully',
+        message: 'Xóa thiết bị thành công',
         updatedDevice
       };
+  
     } catch (error) {
-      console.error('Error deleting device by device_id:', error);
+      console.error('Lỗi khi xóa thiết bị theo device_id:', error);
       throw new HttpException(
         'Đã xảy ra lỗi khi xóa thiết bị',
         HttpStatus.INTERNAL_SERVER_ERROR,
