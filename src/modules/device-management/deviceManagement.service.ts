@@ -45,7 +45,7 @@ export class DeviceManagerService {
 
       for (let i = 0; i < createDeviceDto.quantity; i++) {
         const id_device = `${createDeviceDto.name}-${uuidv4().substring(0, 8)}`;
-        
+
         // Thêm vào details cho devices collection
         details.push({
           status: 'inventory',
@@ -73,7 +73,7 @@ export class DeviceManagerService {
       };
 
       const newDevice = new this.deviceManagementModel(newCreateDeviceDto);
-      
+
       // Lưu song song cả hai collection
       await Promise.all([newDevice.save(), ...deviceListPromises]);
 
@@ -86,17 +86,18 @@ export class DeviceManagerService {
     }
   }
 
-
   //GET ALL DEVICE
   public async getAllDevice(query: filterDeviceDto): Promise<any> {
     try {
       const hasQuery = Object.keys(query).length > 0;
-      const items_per_page = hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
+      const items_per_page =
+        hasQuery && query.items_per_page ? Number(query.items_per_page) : 10;
       const page = hasQuery && query.page ? Number(query.page) + 1 : 1;
       const skip = (page - 1) * items_per_page;
       const keyword = query?.keyword || '';
+      const subCategoryId = query?.subCategoryId;
       const filter: any = {};
-  
+
       if (keyword) {
         const orderIdRegex = /^[0-9a-fA-F]{24}$/;
         if (orderIdRegex.test(keyword)) {
@@ -105,80 +106,89 @@ export class DeviceManagerService {
           filter.$or = [{ name: { $regex: keyword, $options: 'i' } }];
         }
       }
-  
-      const data = await this.deviceManagementModel.aggregate([
-        { $match: filter },
-        { $sort: { regDt: -1 } },
-        { $skip: skip },
-        { $limit: items_per_page },
-        {
-          $addFields: {
-            "detailIds": {
-              $map: {
-                input: "$detail",
-                as: "det",
-                in: "$$det.id_device"
-              }
-            }
-          }
-        },
-        {
-          $lookup: {
-            from: "device_lists",
-            let: { deviceIds: "$detailIds" },
-            pipeline: [
-              {
-                $match: {
-                  $expr: {
-                    $in: ["$id_device", "$$deviceIds"]
-                  }
-                }
-              }
-            ],
-            as: "deviceDetails"
-          }
-        },
-        {
-          $addFields: {
-            "detail": {
-              $map: {
-                input: "$detail",
-                as: "det",
-                in: {
-                  $mergeObjects: [
-                    "$$det",
-                    {
-                      deviceInfo: {
-                        $arrayElemAt: [
-                          {
-                            $filter: {
-                              input: "$deviceDetails",
-                              cond: { $eq: ["$$this.id_device", "$$det.id_device"] }
-                            }
-                          },
-                          0
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        {
-          $project: {
-            detailIds: 0,
-            deviceDetails: 0
-          }
-        }
-      ]).exec();
-  
-      const totalCount = await this.deviceManagementModel.countDocuments(filter);
+
+      if (subCategoryId) {
+        filter['sub_category_id'] = new Types.ObjectId(subCategoryId);
+      }
+
+      const data = await this.deviceManagementModel
+        .aggregate([
+          { $match: filter },
+          { $sort: { regDt: -1 } },
+          { $skip: skip },
+          { $limit: items_per_page },
+          {
+            $addFields: {
+              detailIds: {
+                $map: {
+                  input: '$detail',
+                  as: 'det',
+                  in: '$$det.id_device',
+                },
+              },
+            },
+          },
+          {
+            $lookup: {
+              from: 'device_lists',
+              let: { deviceIds: '$detailIds' },
+              pipeline: [
+                {
+                  $match: {
+                    $expr: {
+                      $in: ['$id_device', '$$deviceIds'],
+                    },
+                  },
+                },
+              ],
+              as: 'deviceDetails',
+            },
+          },
+          {
+            $addFields: {
+              detail: {
+                $map: {
+                  input: '$detail',
+                  as: 'det',
+                  in: {
+                    $mergeObjects: [
+                      '$$det',
+                      {
+                        deviceInfo: {
+                          $arrayElemAt: [
+                            {
+                              $filter: {
+                                input: '$deviceDetails',
+                                cond: {
+                                  $eq: ['$$this.id_device', '$$det.id_device'],
+                                },
+                              },
+                            },
+                            0,
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              detailIds: 0,
+              deviceDetails: 0,
+            },
+          },
+        ])
+        .exec();
+
+      const totalCount =
+        await this.deviceManagementModel.countDocuments(filter);
       const lastPage = Math.ceil(totalCount / items_per_page);
       const nextPage = page + 1 > lastPage ? null : page + 1;
       const prevPage = page - 1 < 1 ? null : page - 1;
-  
+
       return {
         data,
         totalCount,
@@ -268,27 +278,30 @@ export class DeviceManagerService {
   public async deleteDevice(id: string): Promise<any> {
     try {
       const objectId = new Types.ObjectId(id);
-      
+
       // Tìm thiết bị trước khi xóa để lấy danh sách id_device
       const device = await this.deviceManagementModel.findById(objectId);
       if (!device) {
-        throw new HttpException('Không tìm thấy thiết bị!', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Không tìm thấy thiết bị!',
+          HttpStatus.NOT_FOUND,
+        );
       }
-  
+
       // Lấy danh sách id_device từ detail
-      const deviceIds = device.detail.map(item => item.id_device);
-  
+      const deviceIds = device.detail.map((item) => item.id_device);
+
       // Xóa tất cả các bản ghi liên quan trong device_lists
       await this.deviceListModel.deleteMany({ id_device: { $in: deviceIds } });
-  
+
       // Xóa thiết bị trong bảng deviceManagement
       const deleteDevice = await this.deviceManagementModel.findOneAndDelete({
         _id: objectId,
       });
-  
+
       return {
         message: 'Xóa thiết bị thành công',
-        deletedDevice: deleteDevice
+        deletedDevice: deleteDevice,
       };
     } catch (error) {
       console.error('Lỗi khi xóa thiết bị:', error);
@@ -301,70 +314,80 @@ export class DeviceManagerService {
   public async deleteByDeviceId(deviceId: string): Promise<any> {
     try {
       // Kiểm tra thiết bị trong device_lists collection
-      const deviceToDelete = await this.deviceListModel.findOne({ id_device: deviceId });
-      
+      const deviceToDelete = await this.deviceListModel.findOne({
+        id_device: deviceId,
+      });
+
       if (!deviceToDelete) {
-        throw new HttpException('Thiết bị không tồn tại!', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Thiết bị không tồn tại!',
+          HttpStatus.NOT_FOUND,
+        );
       }
-  
+
       // Nếu có lịch sử sửa chữa, cập nhật lại số lượng linh kiện đã ứng
-      if (deviceToDelete.history_repair && deviceToDelete.history_repair.length > 0) {
+      if (
+        deviceToDelete.history_repair &&
+        deviceToDelete.history_repair.length > 0
+      ) {
         // Tạo map để tổng hợp số lượng linh kiện theo nhân viên
         const staffPartsMap = new Map();
-  
+
         // Duyệt qua từng lịch sử sửa chữa
         for (const repair of deviceToDelete.history_repair) {
           const staffName = repair.staff_repair;
-          
+
           // Duyệt qua từng linh kiện trong lần sửa
           for (const linhKienItem of repair.linh_kien) {
             const key = `${staffName}-${linhKienItem.name}`;
-            
+
             if (!staffPartsMap.has(key)) {
               staffPartsMap.set(key, {
                 staffName,
                 partName: linhKienItem.name,
-                total: 0
+                total: 0,
               });
             }
-            
+
             staffPartsMap.get(key).total += linhKienItem.total;
           }
         }
-  
+
         // Cập nhật số lượng trong collection linh_kien
         for (const [_, data] of staffPartsMap) {
           await this.linhKienModel.updateOne(
-            { 
+            {
               name_linh_kien: data.partName,
-              'data_ung.name': data.staffName 
+              'data_ung.name': data.staffName,
             },
             {
-              $inc: { 'data_ung.$.total': data.total }
-            }
+              $inc: { 'data_ung.$.total': data.total },
+            },
           );
         }
       }
-  
+
       // Xóa thiết bị từ device_lists collection
       await this.deviceListModel.findOneAndDelete({ id_device: deviceId });
-  
+
       // Cập nhật devices collection
       const updatedDevice = await this.deviceManagementModel.findOneAndUpdate(
         { 'detail.id_device': deviceId },
         { $pull: { detail: { id_device: deviceId } } },
-        { new: true }
+        { new: true },
       );
-  
+
       if (!updatedDevice) {
-        throw new HttpException('Không tìm thấy thiết bị trong danh sách!', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          'Không tìm thấy thiết bị trong danh sách!',
+          HttpStatus.NOT_FOUND,
+        );
       }
-  
+
       return {
         message: 'Xóa thiết bị thành công',
-        updatedDevice
+        updatedDevice,
       };
-  
     } catch (error) {
       console.error('Lỗi khi xóa thiết bị theo device_id:', error);
       throw new HttpException(
@@ -374,4 +397,3 @@ export class DeviceManagerService {
     }
   }
 }
-
