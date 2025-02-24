@@ -6,12 +6,12 @@ import { Types } from 'mongoose';
 import { CustomerManagementModel } from '../customer-management/models/customerManagement.model';
 import { DeviceManagementModel } from '../device-management/models/deviceManagement.model';
 import {
-  ItemDto,
   ListOrderDto,
   OrderMngDto,
   QueryOrderDto,
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
+import { DeviceListModel } from '../device-management/models/deviceList.model';
 
 @Injectable()
 export class OrderManagerService {
@@ -20,12 +20,14 @@ export class OrderManagerService {
     private readonly orderManagementModel: MongooseModel<OrderManagementModel>,
     @InjectModel(DeviceManagementModel)
     private readonly deviceManagementModel: MongooseModel<DeviceManagementModel>,
+    @InjectModel(DeviceListModel)
+    private readonly deviceListModel: MongooseModel<DeviceListModel>,
     @InjectModel(CustomerManagementModel)
     private readonly customerManagementModel: MongooseModel<CustomerManagementModel>,
   ) {}
 
   public async createOrder(body: OrderMngDto): Promise<OrderManagementModel> {
-    await this.updateDeviceInOrder(body.items);
+    await this.createDeviceInOrder(body);
     const newOrder = new this.orderManagementModel({
       ...body,
       regDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
@@ -38,28 +40,202 @@ export class OrderManagerService {
     id: string,
     body: OrderMngDto,
   ): Promise<OrderManagementModel | boolean> {
-    const objectId = new Types.ObjectId(id);
-    const orderById = await this.getOrderById(id);
+    try {
+      const objectId = new Types.ObjectId(id);
+      const orderById = await this.getOrderById(id);
+      const customer = await this.customerManagementModel.findById(
+        body.customer,
+      );
 
-    const updateDevice = await this.updateDeviceInOrder(
-      body?.items,
-      orderById?.items?.map((x) => ({
-        device: x.device.id as string,
-        details: x.details,
-      })) as ItemDto[],
-    );
+      // Tạo map để so sánh thiết bị cũ và mới
+      const oldDevicesMap = new Map();
+      orderById.items.forEach((item) => {
+        oldDevicesMap.set(item.device.id, {
+          details: new Set(item.details),
+          device: item.device,
+        });
+      });
 
-    if (updateDevice) {
+      // Xử lý từng thiết bị trong danh sách mới
+      for (const newItem of body.items) {
+        const oldItem = oldDevicesMap.get(newItem.device);
+
+        if (!oldItem) {
+          // Trường hợp 1: Thêm sản phẩm mới
+          await this.deviceManagementModel.updateMany(
+            {
+              _id: newItem.device,
+              'detail.id_device': { $in: newItem.details },
+            },
+            {
+              $set: { 'detail.$[elem].status': 'sold' },
+            },
+            {
+              arrayFilters: [{ 'elem.id_device': { $in: newItem.details } }],
+            },
+          );
+
+          const device = await this.deviceManagementModel.findById(
+            newItem.device,
+          );
+
+          // Cập nhật device_list
+          for (const deviceId of newItem.details || []) {
+            await this.deviceListModel.findOneAndUpdate(
+              { id_device: deviceId },
+              {
+                $set: {
+                  status: 'Đã bán',
+                  type_customer:
+                    body.type_customer === 'bank' ? 'Ngân hàng' : 'Tư nhân',
+                  name_customer: customer?.name || '',
+                  warranty: newItem.warranty,
+                  date_buy: moment(new Date()).format('DD-MM-YYYY'),
+                  name: device?.name || '',
+                },
+              },
+            );
+          }
+        } else {
+          // Trường hợp 2: Cập nhật số lượng thiết bị đã có
+          const oldDetails = oldItem.details;
+          const newDetails = new Set(newItem.details);
+
+          // Xử lý thiết bị tăng thêm
+          const addedDetails = (newItem.details || []).filter(
+            (detail) => !oldDetails.has(detail),
+          );
+          if (addedDetails.length > 0) {
+            await this.deviceManagementModel.updateMany(
+              {
+                _id: newItem.device,
+                'detail.id_device': { $in: addedDetails },
+              },
+              {
+                $set: { 'detail.$[elem].status': 'sold' },
+              },
+              {
+                arrayFilters: [{ 'elem.id_device': { $in: addedDetails } }],
+              },
+            );
+
+            const device = await this.deviceManagementModel.findById(
+              newItem.device,
+            );
+
+            // Cập nhật device_list cho thiết bị mới thêm
+            for (const deviceId of addedDetails) {
+              await this.deviceListModel.findOneAndUpdate(
+                { id_device: deviceId },
+                {
+                  $set: {
+                    status: 'Đã bán',
+                    type_customer:
+                      body.type_customer === 'bank' ? 'Ngân hàng' : 'Tư nhân',
+                    name_customer: customer?.name || '',
+                    warranty: newItem.warranty,
+                    date_buy: moment(new Date()).format('DD-MM-YYYY'),
+                    name: device?.name || '',
+                  },
+                },
+              );
+            }
+          }
+
+          // Xử lý thiết bị giảm đi
+          const removedDetails = (oldDetails || []).filter(
+            (detail) => !newDetails.has(detail),
+          );
+          if (removedDetails.length > 0) {
+            await this.deviceManagementModel.updateMany(
+              {
+                _id: newItem.device,
+                'detail.id_device': { $in: removedDetails },
+              },
+              {
+                $set: { 'detail.$[elem].status': 'inventory' },
+              },
+              {
+                arrayFilters: [{ 'elem.id_device': { $in: removedDetails } }],
+              },
+            );
+
+            // Cập nhật device_list cho thiết bị bị xóa
+            await this.deviceListModel.updateMany(
+              { id_device: { $in: removedDetails } },
+              {
+                $set: {
+                  status: 'inventory',
+                },
+                $unset: {
+                  type_customer: '',
+                  name_customer: '',
+                  warranty: '',
+                  date_buy: '',
+                },
+              },
+            );
+          }
+        }
+      }
+
+      // Xử lý các thiết bị bị xóa hoàn toàn khỏi order
+      const newDeviceIds = new Set(body.items.map((item) => item.device));
+      const removedDevices = (Array.from(oldDevicesMap.keys()) || []).filter(
+        (deviceId) => !newDeviceIds.has(deviceId),
+      );
+
+      for (const deviceId of removedDevices) {
+        const oldItem = oldDevicesMap.get(deviceId);
+        await this.deviceManagementModel.updateMany(
+          {
+            _id: deviceId,
+            'detail.id_device': { $in: Array.from(oldItem.details) },
+          },
+          {
+            $set: { 'detail.$[elem].status': 'inventory' },
+          },
+          {
+            arrayFilters: [
+              { 'elem.id_device': { $in: Array.from(oldItem.details) } },
+            ],
+          },
+        );
+
+        await this.deviceListModel.updateMany(
+          { id_device: { $in: Array.from(oldItem.details) } },
+          {
+            $set: {
+              status: 'inventory',
+            },
+            $unset: {
+              type_customer: '',
+              name_customer: '',
+              warranty: '',
+              date_buy: '',
+            },
+          },
+        );
+      }
+
+      // Cập nhật order
       const newOrder = await this.orderManagementModel.findOneAndUpdate(
+        { _id: objectId },
         {
-          _id: objectId,
+          ...body,
+          modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
         },
-        { ...body, modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss') },
         { new: true },
       );
+
       return newOrder as OrderManagementModel;
+    } catch (error) {
+      console.error('Error updating order:', error);
+      throw new HttpException(
+        'Đã xảy ra lỗi khi cập nhật đơn hàng',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-    return false;
   }
 
   public async getAllOrder(query: QueryOrderDto): Promise<ListOrderDto> {
@@ -163,47 +339,83 @@ export class OrderManagerService {
     try {
       const objectId = new Types.ObjectId(id);
       const orderById = await this.getOrderById(id);
-      const oldItems = orderById?.items.map((x) => ({
-        device: x.device.id as string,
-        details: x.details,
-      })) as ItemDto[];
 
-      const updateResult = await this.updateDeviceInOrder([], oldItems, true);
+      // Lấy thông tin các thiết bị trong order
+      for (const item of orderById.items) {
+        const deviceId = item.device._id || item.device;
+        const deviceDetails = item.details;
 
-      if (updateResult) {
-        await this.orderManagementModel.findOneAndDelete({
-          _id: objectId,
-        });
-        return true;
+        // 2. Cập nhật status trong bảng devices
+        await this.deviceManagementModel.updateMany(
+          {
+            _id: deviceId,
+            'detail.id_device': { $in: deviceDetails },
+          },
+          {
+            $set: { 'detail.$[elem].status': 'inventory' },
+          },
+          {
+            arrayFilters: [{ 'elem.id_device': { $in: deviceDetails } }],
+          },
+        );
+
+        // 3. Cập nhật thông tin trong bảng device_lists
+        await this.deviceListModel.updateMany(
+          {
+            id_device: { $in: deviceDetails },
+          },
+          {
+            $set: {
+              status: 'inventory',
+            },
+            $unset: {
+              type_customer: '',
+              name_customer: '',
+              warranty: '',
+              date_buy: '',
+            },
+          },
+        );
       }
-      return false;
+
+      // 1. Xóa order
+      await this.orderManagementModel.findOneAndDelete({
+        _id: objectId,
+      });
+
+      return true;
     } catch (error) {
+      console.error('Error deleting order:', error);
       throw new HttpException(
-        'An error occurred while delete the order',
+        'Đã xảy ra lỗi khi xóa đơn hàng',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  public async updateDeviceInOrder(
-    newItems?: ItemDto[],
-    oldItems?: ItemDto[],
-    setInventoryOnly: boolean = false,
-  ): Promise<boolean> {
+  public async createDeviceInOrder(body: OrderMngDto): Promise<boolean> {
     const newItemsMap = new Map();
     const oldItemsMap = new Map();
+    const customer = await this.customerManagementModel.findById(body.customer);
 
-    (newItems || []).forEach((item) => {
-      newItemsMap.set(item.device, new Set(item.details));
+    (body.items || []).forEach((item) => {
+      newItemsMap.set(item.device, {
+        details: new Set(item.details),
+        warranty: item.warranty,
+      });
     });
 
-    (oldItems || []).forEach((item) => {
-      oldItemsMap.set(item.device, new Set(item.details));
+    (body.items || []).forEach((item) => {
+      oldItemsMap.set(item.device, {
+        details: new Set(item.details),
+        warranty: item.warranty,
+      });
     });
 
     try {
-      if (!setInventoryOnly && newItems) {
-        for (const item of newItems) {
+      if (body.items) {
+        for (const item of body.items) {
+          // Cập nhật trạng thái trong deviceManagement
           await this.deviceManagementModel.updateMany(
             {
               _id: item.device,
@@ -216,24 +428,26 @@ export class OrderManagerService {
               arrayFilters: [{ 'elem.id_device': { $in: item.details } }],
             },
           );
-        }
-      }
 
-      if (oldItems && oldItems.length > 0) {
-        for (const oldItem of oldItems) {
-          const newDetailsSet = newItemsMap.get(oldItem.device) || new Set();
-          for (const detail of oldItem.details || []) {
-            if (setInventoryOnly || !newDetailsSet.has(detail)) {
-              await this.deviceManagementModel.updateOne(
-                {
-                  _id: oldItem.device,
-                  'detail.id_device': detail,
+          // Lấy thông tin device để lấy tên
+          const device = await this.deviceManagementModel.findById(item.device);
+
+          // Cập nhật device_list cho các thiết bị được bán
+          for (const deviceId of item.details || []) {
+            await this.deviceListModel.findOneAndUpdate(
+              { id_device: deviceId },
+              {
+                $set: {
+                  status: 'Đã bán',
+                  type_customer:
+                    body.type_customer === 'bank' ? 'Ngân hàng' : 'Tư nhân',
+                  name_customer: customer?.name || '',
+                  warranty: item.warranty,
+                  date_buy: moment(new Date()).format('DD-MM-YYYY'),
+                  name: device?.name || '',
                 },
-                {
-                  $set: { 'detail.$.status': 'inventory' },
-                },
-              );
-            }
+              },
+            );
           }
         }
       }

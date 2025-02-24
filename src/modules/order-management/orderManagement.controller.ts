@@ -1,4 +1,3 @@
-import { Roles } from '@app/decorators/roles.decorator';
 import { AuthGuard } from '@app/guards/auth.guard';
 import { RolesGuard } from '@app/guards/roles.guard';
 import {
@@ -20,7 +19,6 @@ import {
 } from './dto/orderManagement.dto';
 import { OrderManagementModel } from './models/orderManagement.model';
 import { OrderManagerService } from './orderManagement.service';
-import { USER_TYPE } from '@app/constants/account';
 
 @ApiBearerAuth()
 @ApiTags('OrderManagement')
@@ -44,7 +42,6 @@ export class OrderManagementController {
     return await this.orderManagementService.getOrderById(id);
   }
 
-  @Roles(USER_TYPE.SUPER_ADMIN)
   @UseGuards(RolesGuard)
   @Put(':id')
   async updateOrderById(
@@ -54,10 +51,10 @@ export class OrderManagementController {
     return await this.orderManagementService.updateOrderById(id, body);
   }
 
-  @Roles(USER_TYPE.SUPER_ADMIN)
   @UseGuards(RolesGuard)
   @Delete(':id')
   async deleteOrderById(@Param('id') id: string): Promise<boolean> {
+    console.log('id', id);
     return await this.orderManagementService.deleteOrderById(id);
   }
 }
