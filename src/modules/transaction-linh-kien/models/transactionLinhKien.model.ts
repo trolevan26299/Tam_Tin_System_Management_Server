@@ -33,12 +33,15 @@ export class TransactionLinhKienModel {
   nguoi_tao: string;
 
   @IsString()
-  @prop()
-  noi_dung: string;
+  @prop({ required: false })
+  noi_dung?: string;
 
   @IsNumber()
   @prop({ required: true })
   total: number;
+
+  @prop()
+  create_date: string;
 }
 
 export const TransactionLinhKienProvider = getProviderByTypegooseClass(

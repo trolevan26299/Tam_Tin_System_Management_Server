@@ -77,4 +77,10 @@ export class DeviceManagerController {
   async deleteDevice(@Param('id') id: string): Promise<any> {
     return this.deviceManagementService.deleteDevice(id);
   }
+
+  // API DELETE DEVICE BY ID
+  @Delete('delete-by-device-id/:deviceId')
+  async deleteByDeviceId(@Param('deviceId') deviceId: string): Promise<any> {
+    return this.deviceManagementService.deleteByDeviceId(deviceId);
+  }
 }
