@@ -74,9 +74,17 @@ export class QueryStaffDto {
 export class DetailStaffDto {
   data: StaffManagementModel;
 }
+interface LinhKienUng {
+  name_linh_kien: string;
+  total: number;
+}
 
 export class ListStaffDto {
-  data: StaffManagementModel[];
+  data: Array<
+    StaffManagementModel & {
+      linh_kien_ung: LinhKienUng[];
+    }
+  >;
   totalCount: number;
   currentPage: number;
   lastPage: number;

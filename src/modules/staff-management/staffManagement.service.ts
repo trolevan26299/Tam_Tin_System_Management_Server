@@ -10,12 +10,15 @@ import {
   StaffMngDto,
 } from './dto/staffManagement.dto';
 import { StaffManagementModel } from './models/staffManagement.model';
+import { LinhKienModel } from '../linh-kien/models/linhKien.model';
 
 @Injectable()
 export class StaffManagerService {
   constructor(
     @InjectModel(StaffManagementModel)
     private readonly staffManagementModel: MongooseModel<StaffManagementModel>,
+    @InjectModel(LinhKienModel)
+    private readonly linhKienModel: MongooseModel<LinhKienModel>,
   ) {}
 
   public async createStaff(body: StaffMngDto): Promise<StaffManagementModel> {
@@ -110,16 +113,40 @@ export class StaffManagerService {
         totalCount = await this.staffManagementModel.countDocuments(filter);
       }
 
-      const lastPage = Math.ceil(totalCount / items_per_page);
-      const nextPage = page + 1 > lastPage ? null : page + 1;
-      const prevPage = page - 1 < 1 ? null : page - 1;
+      // Lấy thông tin linh kiện cho mỗi nhân viên
+      const staffWithLinhKien = await Promise.all(
+        dataRes.map(async (staff) => {
+          const linhKien = await this.linhKienModel
+            .find({
+              'data_ung.id': staff._id.toString(),
+            })
+            .exec();
+
+          const linhKienUng = linhKien.map((item) => {
+            const ungData = item?.data_ung?.find(
+              (ung) => ung.id === staff._id.toString(),
+            );
+            return {
+              name_linh_kien: item.name_linh_kien,
+              total: ungData ? ungData.total : 0,
+            };
+          });
+
+          return {
+            ...staff.toObject(),
+            linh_kien_ung: linhKienUng,
+          };
+        }),
+      );
+
       return {
-        data: dataRes,
+        data: staffWithLinhKien,
         totalCount,
         currentPage: page,
-        lastPage,
-        nextPage,
-        prevPage,
+        lastPage: Math.ceil(totalCount / items_per_page),
+        nextPage:
+          page + 1 > Math.ceil(totalCount / items_per_page) ? null : page + 1,
+        prevPage: page - 1 < 1 ? null : page - 1,
       };
     } catch (error) {
       throw new HttpException(
