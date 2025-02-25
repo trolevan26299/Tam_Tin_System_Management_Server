@@ -58,6 +58,26 @@ export class OrderManagerService {
 
       // Xử lý từng thiết bị trong danh sách mới
       for (const newItem of body.items) {
+        const device = await this.deviceManagementModel.findById(
+          newItem.device,
+        );
+
+        // Cập nhật thông tin trong device_list cho tất cả thiết bị trong đơn hàng
+        await this.deviceListModel.updateMany(
+          { id_device: { $in: newItem.details } },
+          {
+            $set: {
+              status: 'Đã bán',
+              type_customer:
+                body.type_customer === 'bank' ? 'Ngân hàng' : 'Tư nhân',
+              name_customer: customer?.name || '',
+              warranty: newItem.warranty,
+              date_buy: body.delivery_date,
+              name: device?.name || '',
+            },
+          },
+        );
+
         const oldItem = oldDevicesMap.get(newItem.device);
 
         if (!oldItem) {
@@ -143,8 +163,8 @@ export class OrderManagerService {
           }
 
           // Xử lý thiết bị giảm đi
-          const removedDetails = (oldDetails || []).filter(
-            (detail) => !newDetails.has(detail),
+          const removedDetails = Array.from(oldDetails).filter(
+            (detail) => !newDetails.has(detail as string),
           );
           if (removedDetails.length > 0) {
             await this.deviceManagementModel.updateMany(
@@ -443,7 +463,7 @@ export class OrderManagerService {
                     body.type_customer === 'bank' ? 'Ngân hàng' : 'Tư nhân',
                   name_customer: customer?.name || '',
                   warranty: item.warranty,
-                  date_buy: moment(new Date()).format('DD-MM-YYYY'),
+                  date_buy: body.delivery_date,
                   name: device?.name || '',
                 },
               },

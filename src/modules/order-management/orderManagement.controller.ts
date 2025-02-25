@@ -1,5 +1,5 @@
 import { AuthGuard } from '@app/guards/auth.guard';
-import { RolesGuard } from '@app/guards/roles.guard';
+// import { RolesGuard } from '@app/guards/roles.guard';
 import {
   Body,
   Controller,
@@ -42,7 +42,7 @@ export class OrderManagementController {
     return await this.orderManagementService.getOrderById(id);
   }
 
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Put(':id')
   async updateOrderById(
     @Param('id') id: string,
@@ -51,7 +51,7 @@ export class OrderManagementController {
     return await this.orderManagementService.updateOrderById(id, body);
   }
 
-  @UseGuards(RolesGuard)
+  // @UseGuards(RolesGuard)
   @Delete(':id')
   async deleteOrderById(@Param('id') id: string): Promise<boolean> {
     console.log('id', id);
