@@ -29,7 +29,7 @@ export const MONGO_DB = {
     `mongodb+srv://Tro260299:${password}@cluster0.5mwwmu8.mongodb.net/test_next_auth?retryWrites=true&w=majority&appName=Cluster0`,
 };
 export const AUTH = {
-  expiresIn: argv?.auth_expires_in || '3h', // 3 tiếng đồng hồ expire
+  expiresIn: argv?.auth_expires_in || '24h', // 3 tiếng đồng hồ expire
   data: argv?.auth_data || { username: 'tamtin2024' },
   jwtSecret: argv?.auth_key || '__tam_tin_management',
 };

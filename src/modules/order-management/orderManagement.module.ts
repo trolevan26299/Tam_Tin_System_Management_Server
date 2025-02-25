@@ -4,6 +4,7 @@ import { DeviceManagementProvider } from '../device-management/models/deviceMana
 import { OrderManagementProvider } from './models/orderManagement.model';
 import { OrderManagementController } from './orderManagement.controller';
 import { OrderManagerService } from './orderManagement.service';
+import { DeviceListProvider } from '../device-management/models/deviceList.model';
 
 @Module({
   imports: [],
@@ -11,6 +12,7 @@ import { OrderManagerService } from './orderManagement.service';
   providers: [
     OrderManagementProvider,
     DeviceManagementProvider,
+    DeviceListProvider,
     CustomerManagementProvider,
     OrderManagerService,
   ],
