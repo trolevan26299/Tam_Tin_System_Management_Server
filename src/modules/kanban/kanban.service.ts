@@ -201,10 +201,10 @@ export class KanbanService {
       let assigneArray = '';
       if (taskMove.detail.assignee.length > 1) {
         assigneArray = taskMove.detail.assignee
-          .map((assignee) => assignee.telegram)
+          .map((assignee) => `@${assignee.username_telegram}`)
           .join(',');
       } else {
-        assigneArray = taskMove.detail.assignee[0].telegram;
+        assigneArray = `@${taskMove.detail.assignee[0].username_telegram}`;
       }
       const formattedDate = taskMove.detail.due.map((date) => {
         const d = new Date(date);

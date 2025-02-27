@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  IsBoolean,
   IsDefined,
   IsNotEmpty,
   IsNumber,
@@ -41,16 +42,25 @@ export class StaffMngDto {
   @MaxLength(255)
   phone: string;
 
+  @IsNotEmpty({ message: 'user id telegram is not empty !' })
+  @IsDefined()
+  @IsString({ message: 'user id telegram must be string type' })
+  user_id_telegram: string;
+
   @IsNotEmpty({ message: 'username telegram is not empty !' })
   @IsDefined()
   @IsString({ message: 'username telegram must be string type' })
-  telegram: string;
+  username_telegram: string;
 
   @IsNotEmpty({ message: 'position is not empty !' })
   @IsDefined()
   @IsString({ message: 'position must be string type' })
   @MaxLength(255)
   position: string;
+
+  @IsDefined()
+  @IsBoolean()
+  active?: boolean;
 
   note?: string;
   regDt?: string;

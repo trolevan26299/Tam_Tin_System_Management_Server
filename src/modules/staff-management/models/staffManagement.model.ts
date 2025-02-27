@@ -1,6 +1,6 @@
 import { getProviderByTypegooseClass } from '@app/transformers/model.transformer';
 import { prop } from '@typegoose/typegoose';
-import { IsDefined, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsDefined, IsNumber, IsString } from 'class-validator';
 
 export class StaffManagementModel {
   @IsString()
@@ -40,7 +40,17 @@ export class StaffManagementModel {
   @IsString()
   @IsString()
   @prop()
-  telegram: string;
+  user_id_telegram: string;
+
+  @IsString()
+  @IsString()
+  @prop()
+  username_telegram: string;
+
+  @IsBoolean()
+  @IsDefined()
+  @prop({ required: true, default: true })
+  active: boolean;
 
   @IsString()
   @prop()

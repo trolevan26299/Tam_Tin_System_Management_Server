@@ -34,7 +34,7 @@ export class TransactionLinhKienModel {
 
   @IsString()
   @prop()
-  noi_dung: string;
+  noi_dung?: string;
 
   @IsNumber()
   @prop({ required: true })

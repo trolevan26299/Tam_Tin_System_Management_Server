@@ -40,8 +40,10 @@ export class StaffManagerService {
   ): Promise<StaffManagementModel> {
     try {
       const staffUpdate = {
-        ...body,
-        modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        $set: {
+          ...body,
+          modDt: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+        },
       };
 
       const objectId = new Types.ObjectId(id);
@@ -50,6 +52,10 @@ export class StaffManagerService {
         staffUpdate,
         { new: true },
       );
+
+      if (!updatedStaff) {
+        throw new HttpException('Staff not found', HttpStatus.NOT_FOUND);
+      }
 
       return updatedStaff as StaffManagementModel;
     } catch (error) {
