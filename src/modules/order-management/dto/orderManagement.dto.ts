@@ -24,6 +24,14 @@ export class ItemDto {
   @IsNumber()
   @IsNotEmpty({ message: 'Price must not be empty' })
   price: number;
+
+  @IsNumber()
+  @IsNotEmpty({ message: 'Warranty must not be empty' })
+  warranty: number;
+
+  @IsNumber()
+  @IsNotEmpty({ message: 'Quantity must not be empty' })
+  quantity: number;
 }
 
 export class OrderMngDto {
@@ -38,6 +46,11 @@ export class OrderMngDto {
   @IsString({ message: 'customer must be string type' })
   @IsDefined()
   customer: string;
+
+  @IsNotEmpty({ message: 'Type customer is not empty !' })
+  @IsString({ message: 'Type customer must be string type' })
+  @IsDefined()
+  type_customer: string;
 
   @IsNotEmpty({ message: 'ship by is not empty !' })
   @IsString()

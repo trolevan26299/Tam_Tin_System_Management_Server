@@ -49,6 +49,8 @@ export class filterDeviceDto {
   items_per_page?: string;
   @ApiProperty({ required: false })
   keyword?: string;
+  @ApiProperty({ required: false })
+  subCategoryId?: string;
 }
 
 export class ListDeviceDto {

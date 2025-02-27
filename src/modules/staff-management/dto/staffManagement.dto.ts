@@ -26,7 +26,7 @@ export class StaffMngDto {
   @IsNumber()
   age: number;
 
-  @IsNotEmpty({ message: 'age is not empty !' })
+  @IsNotEmpty({ message: 'exp is not empty !' })
   @IsDefined()
   @IsNumber()
   exp: number;
@@ -42,15 +42,13 @@ export class StaffMngDto {
   @MaxLength(255)
   phone: string;
 
-  @IsNotEmpty({ message: 'user id telegram is not empty !' })
-  @IsDefined()
-  @IsString({ message: 'user id telegram must be string type' })
-  user_id_telegram: string;
-
-  @IsNotEmpty({ message: 'username telegram is not empty !' })
   @IsDefined()
   @IsString({ message: 'username telegram must be string type' })
   username_telegram: string;
+
+  @IsDefined()
+  @IsString({ message: 'user id telegram must be string type' })
+  user_id_telegram: string;
 
   @IsNotEmpty({ message: 'position is not empty !' })
   @IsDefined()
@@ -74,14 +72,24 @@ export class QueryStaffDto {
   items_per_page: number;
   @ApiProperty({ required: false })
   keyword: string;
+  @ApiProperty({ required: false })
+  is_all?: boolean;
 }
 
 export class DetailStaffDto {
   data: StaffManagementModel;
 }
+interface LinhKienUng {
+  name_linh_kien: string;
+  total: number;
+}
 
 export class ListStaffDto {
-  data: StaffManagementModel[];
+  data: Array<
+    StaffManagementModel & {
+      linh_kien_ung: LinhKienUng[];
+    }
+  >;
   totalCount: number;
   currentPage: number;
   lastPage: number;

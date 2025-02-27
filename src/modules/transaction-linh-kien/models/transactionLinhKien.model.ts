@@ -39,6 +39,9 @@ export class TransactionLinhKienModel {
   @IsNumber()
   @prop({ required: true })
   total: number;
+
+  @prop()
+  create_date: string;
 }
 
 export const TransactionLinhKienProvider = getProviderByTypegooseClass(

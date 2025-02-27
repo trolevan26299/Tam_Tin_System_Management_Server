@@ -298,7 +298,6 @@ export class KanbanService {
     }
 
     const column = board.columns[columnIndex];
-    console.log('column', column);
     const taskIdsToDelete = column.taskIds;
     board.tasks = board.tasks.filter(
       (task) => !taskIdsToDelete.includes(task.task_id),

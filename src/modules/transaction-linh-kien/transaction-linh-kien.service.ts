@@ -24,13 +24,16 @@ export class TransactionLinhKienService {
   async getList(query: FilterTransactionDto): Promise<any> {
     try {
       const items_per_page = query.items_per_page || 10;
-      const page = query.page || 1;
+      const page = Number(query.page) + 1 || 1;
       const keyword = query.keyword || '';
       const type = query.type;
 
       const filter: any = {};
       if (keyword) {
-        filter.name_linh_kien = { $regex: keyword, $options: 'i' };
+        filter.$or = [
+          { name_linh_kien: { $regex: keyword, $options: 'i' } },
+          { 'nhan_vien.name': { $regex: keyword, $options: 'i' } },
+        ];
       }
       if (type) {
         filter.type = type;
@@ -40,13 +43,13 @@ export class TransactionLinhKienService {
         .find(filter)
         .skip((page - 1) * items_per_page)
         .limit(items_per_page)
-        .sort({ date_update: -1 });
+        .sort({ create_date: -1 });
 
-      const total = await this.transactionModel.countDocuments(filter);
+      const totalCount = await this.transactionModel.countDocuments(filter);
 
       return {
         data: transactions,
-        total,
+        totalCount,
         page,
         items_per_page,
       };
@@ -64,7 +67,7 @@ export class TransactionLinhKienService {
     try {
       const newTransaction = new this.transactionModel({
         ...createDto,
-        date_update: moment().format('YYYY-MM-DD HH:mm:ss'),
+        create_date: moment().format('YYYY-MM-DD HH:mm:ss'),
       });
 
       // Lấy thông tin linh kiện
@@ -317,6 +320,26 @@ export class TransactionLinhKienService {
       throw new HttpException(
         error.message || 'Lỗi khi xóa giao dịch',
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getById(id: string): Promise<any> {
+    try {
+      const transaction = await this.transactionModel.findById(id).exec();
+
+      if (!transaction) {
+        throw new HttpException(
+          'transaction not exists !',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return transaction;
+    } catch (error) {
+      throw new HttpException(
+        'An error occurred while fetching the transaction',
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

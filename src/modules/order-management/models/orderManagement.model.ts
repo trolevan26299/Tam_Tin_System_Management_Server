@@ -25,6 +25,10 @@ class Item {
   @IsNumber()
   @prop({ required: true })
   price: number;
+
+  @IsNumber()
+  @prop({ required: true })
+  warranty: number;
 }
 
 export class OrderManagementModel {
@@ -52,7 +56,13 @@ export class OrderManagementModel {
   @prop({ required: true })
   totalAmount: number;
 
+  @IsNumber()
+  @prop()
   priceSaleOff?: number;
+
+  @IsString()
+  @prop()
+  type_customer?: string;
 
   @IsString()
   @prop()

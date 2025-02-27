@@ -1,4 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateTransactionDTO {
@@ -41,10 +42,16 @@ export class DeleteTransactionDTO {
 }
 
 export class FilterTransactionDto {
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
   page?: number;
 
-  @ApiProperty({ required: false })
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }) => parseInt(value))
   items_per_page?: number;
 
   @ApiProperty({ required: false })
