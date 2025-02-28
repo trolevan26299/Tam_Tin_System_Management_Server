@@ -28,6 +28,7 @@ import { AnalyticsManagementModule } from './modules/analytics-management/analyt
 import { SalaryModule } from './modules/salary/salary.module';
 import { LinhKienModule } from './modules/linh-kien/linhKien.module';
 import { TransactionLinhKienModule } from './modules/transaction-linh-kien/transaction-linh-kien.module';
+import { OrderLinhKienModule } from './modules/order-linh-kien/orderLinhKien.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { TransactionLinhKienModule } from './modules/transaction-linh-kien/trans
         ignoreUserAgents: [/googlebot/gi, /bingbot/gi, /baidubot/gi],
       },
     ]),
+    OrderLinhKienModule,
     LinhKienModule,
     TransactionLinhKienModule,
     DatabaseModule,

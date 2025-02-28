@@ -26,8 +26,6 @@ export class CustomerManagerService {
       const keyword = query.keyword || '';
       const fromDate = query.from_date ? new Date(query.from_date) : null;
       const toDate = query.to_date ? new Date(query.to_date) : null;
-      console.log('🚀 ~ CustomerManagerService ~ toDate:', toDate);
-      console.log('🚀 ~ CustomerManagerService ~ fromDate:', fromDate);
 
       const skip = (page - 1) * items_per_page;
       const filter: any = {};
