@@ -37,6 +37,11 @@ export class LinhKienModel {
   @prop({ required: true })
   total: number;
 
+  @IsNumber()
+  @IsDefined()
+  @prop({ required: true })
+  price: number;
+
   @prop()
   create_date: string;
 

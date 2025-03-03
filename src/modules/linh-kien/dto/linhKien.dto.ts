@@ -11,6 +11,10 @@ export class CreateLinhKienDTO {
   @IsNotEmpty()
   total: number;
 
+  @IsNumber()
+  @IsNotEmpty()
+  price: number;
+
   user_create: {
     username: string;
     id: string;

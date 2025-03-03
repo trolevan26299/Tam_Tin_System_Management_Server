@@ -4,22 +4,25 @@ import {
   IsOptional,
   IsDefined,
   IsBoolean,
+  ValidateNested,
+  IsArray,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
-export class CreateOrderLinhKienDto {
+// DTO cho chi tiết linh kiện
+export class ChiTietLinhKienDto {
   @ApiProperty({
     description: 'ID của linh kiện',
-    example: '60d21b4667d0d8992e610c85',
+    example: '67c594565f8f6017b74a833d'
   })
   @IsString()
   @IsDefined()
   id_linh_kien: string;
 
   @ApiProperty({
-    description: 'Số lượng linh kiện mua',
-    example: 5,
+    description: 'Số lượng linh kiện',
+    example: 1
   })
   @IsNumber()
   @IsDefined()
@@ -27,8 +30,29 @@ export class CreateOrderLinhKienDto {
   so_luong: number;
 
   @ApiProperty({
+    description: 'Giá của linh kiện',
+    example: 50000
+  })
+  @IsNumber()
+  @IsDefined()
+  @Type(() => Number)
+  price: number;
+}
+
+// DTO cho tạo mới đơn hàng
+export class CreateOrderLinhKienDto {
+  @ApiProperty({
+    description: 'Chi tiết các linh kiện trong đơn hàng',
+    type: [ChiTietLinhKienDto]
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ChiTietLinhKienDto)
+  chi_tiet_linh_kien: ChiTietLinhKienDto[];
+
+  @ApiProperty({
     description: 'ID của khách hàng',
-    example: '60d21b4667d0d8992e610c86',
+    example: '67c5a20c5f8f6017b74a8453'
   })
   @IsString()
   @IsDefined()
@@ -36,8 +60,7 @@ export class CreateOrderLinhKienDto {
 
   @ApiProperty({
     description: 'Ghi chú cho đơn hàng',
-    example: 'Giao hàng vào buổi sáng',
-    required: false,
+    required: false
   })
   @IsString()
   @IsOptional()
@@ -45,38 +68,39 @@ export class CreateOrderLinhKienDto {
 
   @ApiProperty({
     description: 'Tổng tiền của đơn hàng',
-    example: 1500000,
+    example: 500000
   })
   @IsNumber()
   @IsDefined()
   @Type(() => Number)
   tong_tien: number;
-}
-
-export class UpdateOrderLinhKienDto {
-  @ApiProperty({
-    description: 'ID của linh kiện',
-    example: '60d21b4667d0d8992e610c85',
-    required: false,
-  })
-  @IsString()
-  @IsOptional()
-  id_linh_kien?: string;
 
   @ApiProperty({
-    description: 'Số lượng linh kiện mua',
-    example: 5,
-    required: false,
+    description: 'Lợi nhuận của đơn hàng',
+    example: 445000
   })
   @IsNumber()
-  @IsOptional()
+  @IsDefined()
   @Type(() => Number)
-  so_luong?: number;
+  loi_nhuan: number;
+}
+
+// DTO cho cập nhật đơn hàng
+export class UpdateOrderLinhKienDto {
+  @ApiProperty({
+    description: 'Chi tiết các linh kiện trong đơn hàng',
+    type: [ChiTietLinhKienDto],
+    required: false
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ChiTietLinhKienDto)
+  chi_tiet_linh_kien?: ChiTietLinhKienDto[];
 
   @ApiProperty({
     description: 'ID của khách hàng',
-    example: '60d21b4667d0d8992e610c86',
-    required: false,
+    required: false
   })
   @IsString()
   @IsOptional()
@@ -84,8 +108,7 @@ export class UpdateOrderLinhKienDto {
 
   @ApiProperty({
     description: 'Ghi chú cho đơn hàng',
-    example: 'Giao hàng vào buổi sáng',
-    required: false,
+    required: false
   })
   @IsString()
   @IsOptional()
@@ -93,38 +116,44 @@ export class UpdateOrderLinhKienDto {
 
   @ApiProperty({
     description: 'Tổng tiền của đơn hàng',
-    example: 1500000,
-    required: false,
+    required: false
   })
   @IsNumber()
   @IsOptional()
   @Type(() => Number)
   tong_tien?: number;
+
+  @ApiProperty({
+    description: 'Lợi nhuận của đơn hàng',
+    required: false
+  })
+  @IsNumber()
+  @IsOptional()
+  @Type(() => Number)
+  loi_nhuan?: number;
 }
 
+// DTO cho query tìm kiếm
 export class QueryOrderLinhKienDto {
   @ApiProperty({
-    description: 'Tìm kiếm theo từ khóa (tên linh kiện)',
-    example: 'CPU',
-    required: false,
+    description: 'Tìm kiếm theo từ khóa',
+    required: false
   })
   @IsString()
   @IsOptional()
   keyword?: string;
 
   @ApiProperty({
-    description: 'Thời gian bắt đầu (ISO string)',
-    example: '2023-01-01T00:00:00.000Z',
-    required: false,
+    description: 'Thời gian bắt đầu',
+    required: false
   })
   @IsString()
   @IsOptional()
   from_date?: string;
 
   @ApiProperty({
-    description: 'Thời gian kết thúc (ISO string)',
-    example: '2023-12-31T23:59:59.999Z',
-    required: false,
+    description: 'Thời gian kết thúc',
+    required: false
   })
   @IsString()
   @IsOptional()
@@ -132,17 +161,15 @@ export class QueryOrderLinhKienDto {
 
   @ApiProperty({
     description: 'ID khách hàng',
-    example: '60d21b4667d0d8992e610c86',
-    required: false,
+    required: false
   })
   @IsString()
   @IsOptional()
   id_khach_hang?: string;
 
   @ApiProperty({
-    description: 'Số trang (bắt đầu từ 0)',
-    example: 0,
-    required: false,
+    description: 'Số trang',
+    required: false
   })
   @IsOptional()
   @Type(() => Number)
@@ -150,8 +177,7 @@ export class QueryOrderLinhKienDto {
 
   @ApiProperty({
     description: 'Số lượng item trên một trang',
-    example: 10,
-    required: false,
+    required: false
   })
   @IsOptional()
   @Type(() => Number)
@@ -159,8 +185,7 @@ export class QueryOrderLinhKienDto {
 
   @ApiProperty({
     description: 'Lấy tất cả dữ liệu',
-    example: false,
-    required: false,
+    required: false
   })
   @IsOptional()
   @IsBoolean()
@@ -168,150 +193,116 @@ export class QueryOrderLinhKienDto {
   is_all?: boolean;
 }
 
+// DTO cho thông tin linh kiện trong response
 export class LinhKienInfoDto {
   @ApiProperty({
-    description: 'ID của linh kiện',
-    example: '60d21b4667d0d8992e610c85',
+    description: 'ID của linh kiện'
   })
   _id: string;
 
   @ApiProperty({
-    description: 'Tên linh kiện',
-    example: 'CPU Intel Core i7',
+    description: 'Tên linh kiện'
   })
   name_linh_kien: string;
 
   @ApiProperty({
-    description: 'Số lượng linh kiện trong kho',
-    example: 100,
+    description: 'Số lượng trong kho'
   })
   total: number;
 
   @ApiProperty({
-    description: 'Ngày tạo linh kiện',
-    example: '2023-01-01T00:00:00.000Z',
+    description: 'Giá linh kiện'
   })
-  create_date?: string;
+  price: number;
 }
 
-export class CustomerInfoDto {
-  @ApiProperty({
-    description: 'ID của khách hàng',
-    example: '60d21b4667d0d8992e610c86',
-  })
-  _id: string;
-
-  @ApiProperty({
-    description: 'Tên khách hàng',
-    example: 'Nguyễn Văn A',
-  })
-  name: string;
-
-  @ApiProperty({
-    description: 'Địa chỉ khách hàng',
-    example: 'Hà Nội',
-  })
-  address: string;
-
-  @ApiProperty({
-    description: 'Số điện thoại khách hàng',
-    example: '0123456789',
-  })
-  phone: string;
-
-  @ApiProperty({
-    description: 'Email khách hàng',
-    example: 'example@gmail.com',
-  })
-  email: string;
-}
-
-export class OrderLinhKienResponseDto {
-  @ApiProperty({
-    description: 'ID của đơn hàng',
-    example: '60d21b4667d0d8992e610c87',
-  })
-  _id: string;
-
+// DTO cho thông tin chi tiết linh kiện trong response
+export class ChiTietLinhKienResponseDto {
   @ApiProperty({
     description: 'Thông tin linh kiện',
-    type: LinhKienInfoDto,
+    type: LinhKienInfoDto
   })
   id_linh_kien: LinhKienInfoDto;
 
   @ApiProperty({
-    description: 'Số lượng linh kiện mua',
-    example: 5,
+    description: 'Số lượng đặt mua'
   })
   so_luong: number;
 
   @ApiProperty({
-    description: 'Thông tin khách hàng',
-    type: CustomerInfoDto,
+    description: 'Giá bán'
+  })
+  price: number;
+}
+
+// DTO cho thông tin khách hàng trong response
+export class CustomerInfoDto {
+  @ApiProperty()
+  _id: string;
+
+  @ApiProperty()
+  name: string;
+
+  @ApiProperty()
+  address: string;
+
+  @ApiProperty()
+  phone: string;
+
+  @ApiProperty()
+  email: string;
+}
+
+// DTO cho response của một đơn hàng
+export class OrderLinhKienResponseDto {
+  @ApiProperty()
+  _id: string;
+
+  @ApiProperty({
+    type: [ChiTietLinhKienResponseDto]
+  })
+  chi_tiet_linh_kien: ChiTietLinhKienResponseDto[];
+
+  @ApiProperty({
+    type: CustomerInfoDto
   })
   id_khach_hang: CustomerInfoDto;
 
-  @ApiProperty({
-    description: 'Ghi chú cho đơn hàng',
-    example: 'Giao hàng vào buổi sáng',
-  })
+  @ApiProperty()
   ghi_chu?: string;
 
-  @ApiProperty({
-    description: 'Tổng tiền của đơn hàng',
-    example: 1500000,
-  })
+  @ApiProperty()
   tong_tien: number;
 
-  @ApiProperty({
-    description: 'Ngày tạo đơn hàng',
-    example: '2023-01-01T00:00:00.000Z',
-  })
+  @ApiProperty()
+  loi_nhuan: number;
+
+  @ApiProperty()
   ngay_tao: string;
 
-  @ApiProperty({
-    description: 'Ngày cập nhật đơn hàng',
-    example: '2023-01-02T00:00:00.000Z',
-  })
+  @ApiProperty()
   ngay_cap_nhat?: string;
 }
 
+// DTO cho response danh sách đơn hàng
 export class OrderLinhKienListResponseDto {
   @ApiProperty({
-    description: 'Danh sách đơn hàng',
-    type: [OrderLinhKienResponseDto],
+    type: [OrderLinhKienResponseDto]
   })
   data: OrderLinhKienResponseDto[];
 
-  @ApiProperty({
-    description: 'Tổng số đơn hàng',
-    example: 100,
-  })
+  @ApiProperty()
   totalCount: number;
 
-  @ApiProperty({
-    description: 'Trang hiện tại',
-    example: 1,
-  })
+  @ApiProperty()
   currentPage: number;
 
-  @ApiProperty({
-    description: 'Trang cuối cùng',
-    example: 10,
-  })
+  @ApiProperty()
   lastPage: number;
 
-  @ApiProperty({
-    description: 'Trang tiếp theo',
-    example: 2,
-    nullable: true,
-  })
+  @ApiProperty()
   nextPage: number | null;
 
-  @ApiProperty({
-    description: 'Trang trước đó',
-    example: null,
-    nullable: true,
-  })
+  @ApiProperty()
   prevPage: number | null;
 }

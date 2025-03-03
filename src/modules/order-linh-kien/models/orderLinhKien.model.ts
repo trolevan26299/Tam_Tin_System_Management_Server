@@ -4,37 +4,36 @@ import { getProviderByTypegooseClass } from '../../../transformers/model.transfo
 import { LinhKienModel } from '../../linh-kien/models/linhKien.model';
 import { CustomerManagementModel } from '../../customer-management/models/customerManagement.model';
 
-export class OrderLinhKienModel {
-  @IsString()
-  @IsDefined()
+export class ChiTietLinhKien {
   @prop({ required: true, ref: () => LinhKienModel })
   id_linh_kien: Ref<LinhKienModel>;
 
-  @IsNumber()
-  @IsDefined()
   @prop({ required: true })
   so_luong: number;
 
-  @IsString()
-  @IsDefined()
+  @prop({ required: true })
+  price: number;
+}
+
+export class OrderLinhKienModel {
+  @prop({ required: true, type: () => [ChiTietLinhKien] })
+  chi_tiet_linh_kien: ChiTietLinhKien[];
+
   @prop({ required: true, ref: () => CustomerManagementModel })
   id_khach_hang: Ref<CustomerManagementModel>;
 
-  @IsString()
-  @IsOptional()
   @prop()
   ghi_chu?: string;
 
-  @IsNumber()
-  @IsDefined()
   @prop({ required: true })
   tong_tien: number;
 
-  @IsString()
+  @prop({ required: true })
+  loi_nhuan: number;
+
   @prop({ default: () => new Date().toISOString() })
   ngay_tao: string;
 
-  @IsString()
   @prop()
   ngay_cap_nhat?: string;
 }
